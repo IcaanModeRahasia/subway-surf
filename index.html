@@ -12,7 +12,6 @@
   #gameScreen { display: none; }
   #gameScreen.active { display: block; }
 
-  /* AUTH */
   #authScreen { background: linear-gradient(160deg, #0f0f23, #16213e, #0f3460); }
   .auth-box { background: rgba(255,255,255,.07); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,.15); border-radius: 24px; padding: 40px 32px; width: 90%; max-width: 380px; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,.5); }
   .auth-box h1 { font-size: 24px; margin-bottom: 6px; background: linear-gradient(90deg,#ff6b00,#ffcc00,#ff6b00); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-size: 200%; animation: shine 3s infinite; }
@@ -29,11 +28,10 @@
   .msg { margin-top: 16px; font-size: 13px; min-height: 18px; }
   .msg.err { color: #ff6b6b; } .msg.ok { color: #2ecc71; }
 
-  /* MENU */
   #menuScreen { background: linear-gradient(180deg, #0a0a15, #1a1a2e, #2c1e4e); }
   .menu-top { position: absolute; top: 20px; left: 20px; right: 20px; display: flex; justify-content: space-between; align-items: center; }
   .user-info { display: flex; align-items: center; gap: 10px; }
-  .avatar { width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg,#ff6b00,#ffaa00); display: flex; align-items: center; justify-content: center; font-size: 22px; border: 2px solid rgba(255,255,255,.3); }
+  .avatar { width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg,#ff6b00,#ffaa00); display: flex; align-items: center; justify-content: center; font-size: 22px; border: 2px solid rgba(255,255,255,.3); font-weight: 900; color: #fff; }
   .username { color: #fff; font-weight: 600; font-size: 14px; }
   .coins-display { color: #ffd700; font-size: 13px; font-weight: 600; }
   .hs-display { color: #8899aa; font-size: 13px; background: rgba(0,0,0,.3); padding: 8px 14px; border-radius: 20px; }
@@ -43,7 +41,6 @@
   .resume-btn { background: linear-gradient(135deg,#f39c12,#e67e22); border: none; box-shadow: 0 8px 20px rgba(243,156,18,.4); }
   .hidden { display: none !important; }
 
-  /* GAME */
   #gameScreen { position: fixed; inset: 0; z-index: 5; }
   #gameScreen canvas { display: block; width: 100%; height: 100%; }
   .hud { position: absolute; top: 16px; left: 16px; right: 16px; display: flex; justify-content: space-between; align-items: flex-start; pointer-events: none; z-index: 6; }
@@ -78,7 +75,6 @@
   .pause-box .btn, .over-box .btn { width: 100%; margin-bottom: 10px; }
   #newRecord { color: #ffd700; font-size: 18px; font-weight: 900; margin-top: 10px; animation: pulse 1s infinite; }
 
-  /* SHOP */
   #shopScreen { background: linear-gradient(180deg,#0a0a15,#1a1a2e); padding: 20px; overflow-y: auto; justify-content: flex-start; padding-top: 20px; }
   .shop-header { width: 100%; max-width: 600px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
   .shop-header h2 { color: #fff; font-size: 22px; }
@@ -87,7 +83,7 @@
   .char-card:hover { background: rgba(255,255,255,.15); transform: translateY(-2px); }
   .char-card.selected { border-color: #ff8800; box-shadow: 0 0 20px rgba(255,136,0,.5); }
   .char-card.locked { opacity: .6; }
-  .char-preview { width: 60px; height: 60px; border-radius: 50%; margin: 0 auto 8px; display: flex; align-items: center; justify-content: center; font-size: 28px; box-shadow: inset -4px -4px 12px rgba(0,0,0,.4); }
+  .char-preview { width: 60px; height: 60px; border-radius: 50%; margin: 0 auto 8px; display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 900; color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,.5); box-shadow: inset -4px -4px 12px rgba(0,0,0,.4); }
   .char-name { color: #fff; font-size: 12px; font-weight: 700; }
   .char-price { color: #ffd700; font-size: 11px; margin-top: 2px; }
   .char-price.owned { color: #2ecc71; }
@@ -100,7 +96,6 @@
 </head>
 <body>
 
-<!-- AUTH -->
 <div id="authScreen" class="screen active">
   <div class="auth-box">
     <h1>SUBWAY RUNNER ANIME</h1>
@@ -115,7 +110,6 @@
   </div>
 </div>
 
-<!-- MENU -->
 <div id="menuScreen" class="screen">
   <div class="menu-top">
     <div class="user-info">
@@ -137,7 +131,6 @@
   </div>
 </div>
 
-<!-- GAME -->
 <div id="gameScreen">
   <div class="hud">
     <div class="hud-left">
@@ -162,7 +155,6 @@
 
 <div class="flash" id="flash"></div>
 
-<!-- PAUSE -->
 <div id="pauseScreen" class="screen">
   <div class="pause-box">
     <h2>⏸ PAUSED</h2>
@@ -175,7 +167,6 @@
   </div>
 </div>
 
-<!-- OVER -->
 <div id="overScreen" class="screen">
   <div class="over-box">
     <h2>💀 GAME OVER</h2>
@@ -189,7 +180,6 @@
   </div>
 </div>
 
-<!-- SHOP -->
 <div id="shopScreen" class="screen">
   <div class="shop-header">
     <h2>👕 PILIH KARAKTER</h2>
@@ -202,7 +192,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 /* ==========================================================
-   CONFIG & CONSTANTS
+   CONFIG
    ========================================================== */
 const USE_CUSTOM_SONG = false;
 const CUSTOM_SONG_FILE = 'lagu.mp3';
@@ -211,7 +201,7 @@ const PLAYER_Z = 0;
 const BASE_SPEED = 32;
 const MAX_SPEED = 80;
 const SPEED_PER_M = 0.018;
-const JUMP_V = 16;
+const JUMP_V = 19;              // FIX #4: dipertinggi (dari 16)
 const GRAVITY = 42;
 const TRAIN_TOP = 2.9;
 const DOG_Z = 5;
@@ -365,7 +355,7 @@ let customAudio = null;
 
 function initAudio() {
   if (audioCtx) return;
-  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {}
 }
 function playTone(freq, time, dur, vol, type = 'sine') {
   if (!audioCtx) return;
@@ -416,7 +406,6 @@ function toggleMusic() {
   document.getElementById('musicLabel').textContent = musicMuted ? 'OFF' : 'ON';
   if (musicMuted) stopMusic(); else startMusic();
 }
-
 function sfx(type) {
   if (!audioCtx || musicMuted) return;
   const n = audioCtx.currentTime;
@@ -468,7 +457,7 @@ function sfxBark() {
 }
 
 /* ==========================================================
-   THREE.JS SETUP
+   THREE.JS
    ========================================================== */
 let scene, camera, renderer, player, dog, clock;
 let gameRunning = false, gamePaused = false;
@@ -488,11 +477,11 @@ let animTime = 0;
 let nextSpawnDistance = 30;
 let roadTexture;
 let shakeTime = 0;
-let legL, legR, armL, armR, bodyGroup;
 let barkTimer = 0;
 let skillBtnEl = null;
 let gameLoopId = null;
 let dogAnimTime = 0;
+let _savedDist = 0, _savedSpeed = 0, _savedCoins = 0;
 
 function initThree() {
   if (renderer) return;
@@ -587,7 +576,7 @@ function makeRoadTexture() {
    ========================================================== */
 function buildCharacter(char) {
   const g = new THREE.Group();
-  bodyGroup = new THREE.Group();
+  const bodyGroup = new THREE.Group();
   g.add(bodyGroup);
 
   const bodyMat = new THREE.MeshStandardMaterial({ color: char.outfit, roughness: .55, metalness: .1 });
@@ -602,7 +591,6 @@ function buildCharacter(char) {
   const head = new THREE.Mesh(new THREE.SphereGeometry(.23, 16, 16), skinMat);
   head.position.y = 1.65; head.castShadow = true; bodyGroup.add(head);
 
-  // Hair
   if (char.hairType === 'spiky') {
     for (let i = 0; i < 10; i++) {
       const cone = new THREE.Mesh(new THREE.ConeGeometry(0.07, 0.28, 6), hairMat);
@@ -619,7 +607,6 @@ function buildCharacter(char) {
     cap.position.y = 1.7; bodyGroup.add(cap);
     const back = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.65, 0.14), hairMat);
     back.position.set(0, 1.4, -0.18); bodyGroup.add(back);
-    // side hair
     [-1, 1].forEach(s => {
       const sideH = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.4, 0.15), hairMat);
       sideH.position.set(s * 0.22, 1.5, 0.05); bodyGroup.add(sideH);
@@ -629,14 +616,12 @@ function buildCharacter(char) {
     bowl.position.y = 1.68; bodyGroup.add(bowl);
   }
 
-  // Eyes
   const eyeMat = new THREE.MeshStandardMaterial({ color: char.eyeColor, emissive: char.eyeColor, emissiveIntensity: 0.3 });
   [-1, 1].forEach(s => {
     const eye = new THREE.Mesh(new THREE.SphereGeometry(0.045, 8, 8), eyeMat);
     eye.position.set(s * 0.08, 1.66, 0.21); bodyGroup.add(eye);
   });
 
-  // Accessories
   if (char.acc === 'headband') {
     const band = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.07, 0.06), new THREE.MeshStandardMaterial({ color: 0x2266cc }));
     band.position.set(0, 1.72, 0.2); bodyGroup.add(band);
@@ -648,7 +633,6 @@ function buildCharacter(char) {
     mask.position.set(0, 1.58, 0.21); bodyGroup.add(mask);
   }
 
-  // Arms (with pivots for animation)
   const armPivotL = new THREE.Group();
   armPivotL.position.set(-0.35, 1.3, 0);
   const armL = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.55, 0.15), bodyMat);
@@ -661,15 +645,13 @@ function buildCharacter(char) {
   armR.position.y = -0.275; armR.castShadow = true;
   armPivotR.add(armR); bodyGroup.add(armPivotR);
 
-  // Legs (with pivots)
   const legPivotL = new THREE.Group();
   legPivotL.position.set(-0.14, 0.65, 0);
   const legL = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.6, 0.2), pantsMat);
   legL.position.y = -0.3; legL.castShadow = true;
   legPivotL.add(legL); bodyGroup.add(legPivotL);
   const shoeL = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.12, 0.32), shoeMat);
-  shoeL.position.set(0, -0.55, 0.05);
-  legPivotL.add(shoeL);
+  shoeL.position.set(0, -0.55, 0.05); legPivotL.add(shoeL);
 
   const legPivotR = new THREE.Group();
   legPivotR.position.set(0.14, 0.65, 0);
@@ -677,13 +659,10 @@ function buildCharacter(char) {
   legR.position.y = -0.3; legR.castShadow = true;
   legPivotR.add(legR); bodyGroup.add(legPivotR);
   const shoeR = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.12, 0.32), shoeMat);
-  shoeR.position.set(0, -0.55, 0.05);
-  legPivotR.add(shoeR);
+  shoeR.position.set(0, -0.55, 0.05); legPivotR.add(shoeR);
 
-  // Save animation refs
   g.userData.anim = { armL: armPivotL, armR: armPivotR, legL: legPivotL, legR: legPivotR, bodyGroup, eyeMat };
 
-  // Aura glow (skill effect)
   const aura = new THREE.Mesh(
     new THREE.TorusGeometry(0.8, 0.08, 8, 32),
     new THREE.MeshBasicMaterial({ color: char.skillColor, transparent: true, opacity: 0 })
@@ -693,13 +672,11 @@ function buildCharacter(char) {
   g.userData.aura = aura;
   g.add(aura);
 
-  // Wings (hidden)
   const wings = buildWings();
   wings.visible = false;
   g.userData.wings = wings;
   g.add(wings);
 
-  // Hoverboard (hidden)
   const board = buildHoverboard();
   board.visible = false;
   g.userData.board = board;
@@ -764,7 +741,6 @@ function buildDog() {
   const tail = new THREE.Mesh(new THREE.BoxGeometry(.08, .08, .35), bodyMat);
   tail.position.set(0, .7, .5); tail.rotation.x = -0.4; g.add(tail);
 
-  // Legs with pivots
   const legs = [];
   [[-.15, -.3], [.15, -.3], [-.15, .3], [.15, .3]].forEach(([x, z]) => {
     const pivot = new THREE.Group();
@@ -821,7 +797,6 @@ function createTrain(color) {
     }
   }
 
-  // "Passengers" silhouettes
   for (let i = 0; i < 8; i++) {
     const pMat = new THREE.MeshStandardMaterial({ color: new THREE.Color().setHSL(Math.random(), .6, .5), emissive: 0x111111 });
     const passenger = new THREE.Mesh(new THREE.SphereGeometry(.12, 6, 6), pMat);
@@ -898,7 +873,7 @@ function createHoverboardMesh() {
 }
 
 /* ==========================================================
-   SPAWNING
+   SPAWN
    ========================================================== */
 function randomLane() { return Math.floor(Math.random() * 3); }
 
@@ -906,19 +881,19 @@ function addTrain(lane, color) {
   const m = createTrain(color || (Math.random() < .5 ? 0xe74c3c : 0x2980b9));
   m.position.set(LANES[lane], 0, -110);
   scene.add(m);
-  obstacles.push({ mesh: m, type: 'train', length: 12, yBottom: 0, yTop: TRAIN_TOP, lane, zPos: -110 });
+  obstacles.push({ mesh: m, type: 'train', length: 12, yBottom: 0, yTop: TRAIN_TOP, lane });
 }
 function addBarrier(lane) {
   const m = createBarrier();
   m.position.set(LANES[lane], 0, -110);
   scene.add(m);
-  obstacles.push({ mesh: m, type: 'barrier', length: 1, yBottom: 0, yTop: 1.2, lane, zPos: -110 });
+  obstacles.push({ mesh: m, type: 'barrier', length: 1, yBottom: 0, yTop: 1.2, lane });
 }
 function addHighBar(lane) {
   const m = createHighBar();
   m.position.set(LANES[lane], 0, -110);
   scene.add(m);
-  obstacles.push({ mesh: m, type: 'highbar', length: 1, yBottom: 1.7, yTop: 2.6, lane, zPos: -110 });
+  obstacles.push({ mesh: m, type: 'highbar', length: 1, yBottom: 1.7, yTop: 2.6, lane });
 }
 function spawnCoinArc(lane, air) {
   if (lane === undefined) lane = randomLane();
@@ -928,7 +903,7 @@ function spawnCoinArc(lane, air) {
     const y = air ? (6 + Math.sin(i * .5) * 1) : (1.1 + Math.sin(i * .5) * .4);
     m.position.set(LANES[lane], y, -110 - i * 2);
     scene.add(m);
-    coins.push({ mesh: m, spin: 0 });
+    coins.push({ mesh: m });
   }
 }
 function addBoots(lane) {
@@ -952,7 +927,6 @@ function addHoverboard(lane) {
 
 function spawnPattern() {
   const r = Math.random();
-  // Powerups first
   if (!wingsActive && !hoverboardActive) {
     if (r < 0.02) { addWings(randomLane()); return; }
     if (r < 0.05) { addHoverboard(randomLane()); return; }
@@ -960,7 +934,7 @@ function spawnPattern() {
   }
   if (r < 0.20) { spawnCoinArc(); return; }
 
-  // Obstacle patterns - more variety
+  // FIX #2: wall-of-trains pattern dihapus
   const patterns = [
     () => addTrain(randomLane()),
     () => { const free = randomLane(); for (let i = 0; i < 3; i++) if (i !== free) addTrain(i); },
@@ -971,7 +945,6 @@ function spawnPattern() {
     () => { addTrain(randomLane()); addTrain(randomLane()); spawnCoinArc(); },
     () => { addBarrier(0); addHighBar(1); addBarrier(2); },
     () => { addBarrier(randomLane()); addTrain((randomLane() + 1) % 3); },
-    () => { for (let i = 0; i < 3; i++) addTrain(i); }, // wall of trains (jump on!)
   ];
   patterns[Math.floor(Math.random() * patterns.length)]();
 }
@@ -1007,10 +980,10 @@ function startGame(isResume) {
 }
 
 function resetGameState() {
-  obstacles.forEach(o => scene.remove(o.mesh));
-  coins.forEach(c => scene.remove(c.mesh));
-  powerups.forEach(p => scene.remove(p.mesh));
-  particles.forEach(p => scene.remove(p.mesh));
+  if (obstacles) obstacles.forEach(o => scene.remove(o.mesh));
+  if (coins) coins.forEach(c => scene.remove(c.mesh));
+  if (powerups) powerups.forEach(p => scene.remove(p.mesh));
+  if (particles) particles.forEach(p => scene.remove(p)); // FIX #7: p (bukan p.mesh)
   obstacles = []; coins = []; powerups = []; particles = [];
 
   distance = 0; gameSpeed = BASE_SPEED; gameCoins = 0;
@@ -1025,6 +998,7 @@ function resetGameState() {
   nextSpawnDistance = 30;
   shakeTime = 0;
   barkTimer = 0;
+  if (player) { player.scale.y = 1; }
   updateHUD();
   updateStatusBar();
 }
@@ -1043,7 +1017,7 @@ function getGroundY() {
     if (o.type === 'train') {
       if (Math.abs(o.mesh.position.x - player.position.x) < 1.0 &&
           Math.abs(o.mesh.position.z - PLAYER_Z) < o.length / 2) {
-        if (playerY >= TRAIN_TOP - 0.6) {
+        if (playerY >= TRAIN_TOP - 1.0) { // FIX #5: diperlebar
           groundY = Math.max(groundY, TRAIN_TOP);
         }
       }
@@ -1054,27 +1028,22 @@ function getGroundY() {
 
 function updateGame(dt) {
   const scaledDt = dt * timeSlowFactor;
-
-  // Speed scaling
   gameSpeed = Math.min(BASE_SPEED + distance * SPEED_PER_M, MAX_SPEED);
-  distance += gameSpeed * scaledDt * timeSlowFactor;
+  distance += gameSpeed * scaledDt; // FIX #8: tidak dobel timeSlowFactor
 
-  // Player X movement
-  player.position.x += (targetX - player.position.x) * Math.min(dt * 14, 1);
+  // X movement (FIX #6: lebih cepat)
+  player.position.x += (targetX - player.position.x) * Math.min(dt * 20, 1);
 
   // Timers
   if (bootsActive) { bootsTimer -= dt; if (bootsTimer <= 0) { bootsActive = false; updateStatusBar(); } }
-  if (wingsActive) { wingsTimer -= dt; if (wingsTimer <= 0) { wingsActive = false; player.userData.wings.visible = false; updateStatusBar(); } }
-  if (hoverboardActive) { hoverboardTimer -= dt; if (hoverboardTimer <= 0) { hoverboardActive = false; player.userData.board.visible = false; updateStatusBar(); } }
+  if (wingsActive) { wingsTimer -= dt; if (wingsTimer <= 0) { wingsActive = false; updateStatusBar(); } }
+  if (hoverboardActive) { hoverboardTimer -= dt; if (hoverboardTimer <= 0) { hoverboardActive = false; updateStatusBar(); } }
   if (invincibleTimer > 0) invincibleTimer -= dt;
-  if (skillActiveTimer > 0) {
-    skillActiveTimer -= dt;
-    if (skillActiveTimer <= 0) endSkill();
-  }
+  if (skillActiveTimer > 0) { skillActiveTimer -= dt; if (skillActiveTimer <= 0) endSkill(); }
   if (skillCooldownTimer > 0) { skillCooldownTimer -= dt; if (skillCooldownTimer < 0) skillCooldownTimer = 0; }
   if (isSliding) { slideTimer -= dt; if (slideTimer <= 0) { isSliding = false; player.scale.y = 1; } }
 
-  // Wings flight
+  // Vertical physics
   if (wingsActive) {
     playerY += (8 - playerY) * Math.min(dt * 4, 1);
     playerVY = 0;
@@ -1084,20 +1053,19 @@ function updateGame(dt) {
       const c = createCoinMesh();
       c.position.set(LANES[lane], 6 + Math.random() * 3, -100);
       scene.add(c);
-      coins.push({ mesh: c, spin: 0 });
+      coins.push({ mesh: c });
     }
   } else {
-    // Physics
     if (isJumping) {
       playerVY -= GRAVITY * dt;
       playerY += playerVY * dt;
       if (playerVY < 0) {
         const groundY = getGroundY();
-        if (playerY <= groundY && playerY > groundY - Math.abs(playerVY) * dt - 0.5) {
+        if (playerY <= groundY + 0.3) {
           playerY = groundY; playerVY = 0; isJumping = false;
         }
       }
-    } else if (playerY > 0) {
+    } else if (playerY > 0.05) {
       const groundY = getGroundY();
       if (playerY > groundY + 0.05) {
         playerVY -= GRAVITY * dt;
@@ -1110,32 +1078,28 @@ function updateGame(dt) {
       playerY = getGroundY();
     }
   }
-  if (hoverboardActive && !wingsActive) playerY += Math.sin(performance.now() * 0.005) * 0.05 + 0.1;
+  if (hoverboardActive && !wingsActive) playerY = Math.max(playerY, 0.15) + Math.sin(performance.now() * 0.005) * 0.05;
   player.position.y = playerY;
 
-  // Hoverboard visual
+  // Visuals on character
   player.userData.board.visible = hoverboardActive;
   player.userData.board.position.set(0, -0.15, 0.1);
-  // Wings visual
   player.userData.wings.visible = wingsActive;
-  // Aura
   if (skillActiveTimer > 0) {
     player.userData.aura.material.opacity = 0.6 + Math.sin(performance.now() * 0.01) * 0.3;
   } else {
     player.userData.aura.material.opacity = 0;
   }
 
-  // Animate character
   animateCharacter(dt);
   animateDog(dt, scaledDt);
 
-  // Bark sound
   if (gameRunning && !gamePaused) {
     barkTimer -= dt;
     if (barkTimer <= 0) { sfxBark(); barkTimer = 2 + Math.random() * 2; }
   }
 
-  // Move world (obstacles, coins, powerups)
+  // Move world
   const move = gameSpeed * scaledDt;
   roadTexture.offset.y = (roadTexture.offset.y - move * 0.04) % 1;
 
@@ -1158,22 +1122,21 @@ function updateGame(dt) {
     if (p.mesh.position.z > 20) { scene.remove(p.mesh); powerups.splice(i, 1); }
   }
 
-  // Spawn
+  // Spawn (FIX #3: gap lebih besar)
   if (distance > nextSpawnDistance) {
     spawnPattern();
-    const gap = 20 + Math.random() * 18;
-    nextSpawnDistance = distance + Math.max(12, gap - distance * 0.02);
+    const gap = 26 + Math.random() * 14;
+    nextSpawnDistance = distance + Math.max(24, gap - distance * 0.015);
   }
 
-  // Collisions - coins
+  // Coin collision
   for (let i = coins.length - 1; i >= 0; i--) {
     const c = coins[i];
     const px = player.position.x, py = playerY + 1;
-    const attractRadius = (activeSkillEffect === 'magnet') ? 8 : 1.2;
     if (activeSkillEffect === 'magnet') {
-      const dx = px - c.mesh.position.x, dy = py - c.mesh.position.y, dz = 0 - c.mesh.position.z;
+      const dx = px - c.mesh.position.x, dy = py - c.mesh.position.y, dz = -c.mesh.position.z;
       const d = Math.sqrt(dx*dx + dy*dy + dz*dz);
-      if (d < attractRadius) {
+      if (d < 8) {
         c.mesh.position.x += dx * dt * 8;
         c.mesh.position.y += dy * dt * 8;
         c.mesh.position.z += dz * dt * 8;
@@ -1189,28 +1152,28 @@ function updateGame(dt) {
     }
   }
 
-  // Collisions - powerups
+  // Powerup collision
   for (let i = powerups.length - 1; i >= 0; i--) {
     const p = powerups[i];
     if (Math.abs(p.mesh.position.z - PLAYER_Z) < 1.4 &&
         Math.abs(p.mesh.position.x - player.position.x) < 1.2 &&
         Math.abs(p.mesh.position.y - (playerY + 1)) < 2) {
       if (p.type === 'boots') { bootsActive = true; bootsTimer = 8; sfx('boots'); }
-      else if (p.type === 'wings') { wingsActive = true; wingsTimer = 7; sfx('wings'); if (hoverboardActive) { hoverboardActive = false; } }
+      else if (p.type === 'wings') { wingsActive = true; wingsTimer = 7; sfx('wings'); hoverboardActive = false; }
       else if (p.type === 'hoverboard') { hoverboardActive = true; hoverboardTimer = 20; sfx('board'); }
       updateStatusBar();
       scene.remove(p.mesh); powerups.splice(i, 1);
     }
   }
 
-  // Collisions - obstacles (skip if flying)
+  // Obstacle collision
   if (!wingsActive && invincibleTimer <= 0) {
     for (const o of obstacles) {
       if (Math.abs(o.mesh.position.x - player.position.x) > 1.1) continue;
       if (Math.abs(o.mesh.position.z - PLAYER_Z) > o.length / 2 + 0.4) continue;
 
       if (o.type === 'train') {
-        if (playerY >= TRAIN_TOP - 0.5) continue;
+        if (playerY >= TRAIN_TOP - 0.7) continue; // FIX #5
         const pTop = playerY + (isSliding ? 0.9 : 1.8);
         if (pTop > o.yBottom && playerY < o.yTop) { hitObstacle(); break; }
       } else if (o.type === 'barrier') {
@@ -1234,8 +1197,10 @@ function updateGame(dt) {
   }
   camera.lookAt(player.position.x * 0.3, 1.8 + playerY * 0.3, -12);
 
+  updateParticles(dt); // dipanggil langsung di sini
   updateHUD();
-  updateSkillUI(dt);
+  updateStatusBar(); // update tiap frame supaya timer countdown realtime
+  updateSkillUI();
 }
 
 /* ==========================================================
@@ -1295,10 +1260,8 @@ function animateDog(dt, scaledDt) {
   legs[2].rotation.x = -Math.sin(t) * 0.8;
   legs[3].rotation.x = Math.sin(t) * 0.8;
   dog.userData.tail.rotation.z = Math.sin(t * 0.5) * 0.4;
-  // Dog follows player's x
   dog.position.x += (player.position.x - dog.position.x) * Math.min(dt * 4, 1);
-  // Dog bobs
-  dog.position.y = Math.abs(Math.sin(t * 0.5)) * 0.08 + (wingsActive ? Math.sin(t) * 0.1 : 0);
+  dog.position.y = Math.abs(Math.sin(t * 0.5)) * 0.08;
 }
 
 /* ==========================================================
@@ -1308,41 +1271,38 @@ function activateSkill() {
   if (!gameRunning || gamePaused) return;
   if (skillCooldownTimer > 0 || skillActiveTimer > 0) return;
   const char = CHAR_MAP[userData.currentChar] || CHARACTERS[0];
-  const skill = char;
 
   sfx('skill');
   triggerFlash(char.skillColor);
   spawnSkillBurst();
 
-  skillActiveTimer = skill.duration;
-  skillCooldownTimer = skill.cooldown;
-  activeSkillEffect = skill.effect;
-  invincibleTimer = Math.max(invincibleTimer, skill.duration);
+  skillActiveTimer = char.duration;
+  skillCooldownTimer = char.cooldown;
+  activeSkillEffect = char.effect;
+  invincibleTimer = Math.max(invincibleTimer, char.duration);
 
-  if (skill.effect === 'destroy' || skill.effect === 'destroy_all') {
-    // Destroy all obstacles in front
+  if (char.effect === 'destroy' || char.effect === 'destroy_all') {
     for (let i = obstacles.length - 1; i >= 0; i--) {
       const o = obstacles[i];
-      if (o.mesh.position.z < PLAYER_Z && o.mesh.position.z > PLAYER_Z - 40) {
+      if (o.mesh.position.z < PLAYER_Z + 5 && o.mesh.position.z > PLAYER_Z - 45) {
         spawnExplosion(o.mesh.position.x, 1.5, o.mesh.position.z, char.skillColor);
         scene.remove(o.mesh);
         obstacles.splice(i, 1);
-        if (skill.effect === 'destroy') break;
+        if (char.effect === 'destroy') break;
       }
     }
   }
-  if (skill.effect === 'teleport') {
+  if (char.effect === 'teleport') {
     distance += 30;
     for (let i = obstacles.length - 1; i >= 0; i--) {
       const o = obstacles[i];
-      if (o.mesh.position.z < PLAYER_Z && o.mesh.position.z > PLAYER_Z - 50) {
+      if (o.mesh.position.z < PLAYER_Z + 5 && o.mesh.position.z > PLAYER_Z - 50) {
         scene.remove(o.mesh); obstacles.splice(i, 1);
       }
     }
   }
-  if (skill.effect === 'coins_x3') coinMultiplier = 3;
-  if (skill.effect === 'slow') timeSlowFactor = 0.4;
-  if (skill.effect === 'speed_boost') { /* speed handled in endSkill */ }
+  if (char.effect === 'coins_x3') coinMultiplier = 3;
+  if (char.effect === 'slow') timeSlowFactor = 0.4;
   updateStatusBar();
 }
 
@@ -1354,17 +1314,16 @@ function endSkill() {
   skillActiveTimer = 0;
 }
 
-function updateSkillUI(dt) {
+function updateSkillUI() {
   if (!skillBtnEl) return;
-  const cd = skillCooldownTimer;
   const char = CHAR_MAP[userData.currentChar] || CHARACTERS[0];
-  const pct = cd > 0 ? (cd / char.cooldown) * 100 : 0;
+  const pct = skillCooldownTimer > 0 ? (skillCooldownTimer / char.cooldown) * 100 : 0;
   document.getElementById('skillCd').style.setProperty('--cd', pct + '%');
-  skillBtnEl.disabled = cd > 0 || skillActiveTimer > 0;
+  skillBtnEl.disabled = skillCooldownTimer > 0 || skillActiveTimer > 0;
 }
 
 /* ==========================================================
-   VISUAL EFFECTS
+   VFX
    ========================================================== */
 function triggerFlash(color) {
   const f = document.getElementById('flash');
@@ -1373,7 +1332,6 @@ function triggerFlash(color) {
   f.classList.add('on');
   setTimeout(() => f.classList.remove('on'), 100);
 }
-
 function spawnCoinBurst(x, y, z) {
   for (let i = 0; i < 6; i++) {
     const geo = new THREE.SphereGeometry(0.06, 4, 4);
@@ -1388,7 +1346,6 @@ function spawnCoinBurst(x, y, z) {
     particles.push(p);
   }
 }
-
 function spawnExplosion(x, y, z, color) {
   for (let i = 0; i < 15; i++) {
     const geo = new THREE.SphereGeometry(0.1 + Math.random() * 0.15, 6, 6);
@@ -1405,7 +1362,6 @@ function spawnExplosion(x, y, z, color) {
     particles.push(p);
   }
 }
-
 function spawnSkillBurst() {
   const char = CHAR_MAP[userData.currentChar] || CHARACTERS[0];
   for (let i = 0; i < 25; i++) {
@@ -1422,7 +1378,6 @@ function spawnSkillBurst() {
     particles.push(p);
   }
 }
-
 function updateParticles(dt) {
   for (let i = particles.length - 1; i >= 0; i--) {
     const p = particles[i];
@@ -1432,20 +1387,18 @@ function updateParticles(dt) {
     p.position.x += p.userData.vx * dt;
     p.position.y += p.userData.vy * dt;
     p.position.z += p.userData.vz * dt;
-    const s = p.userData.life;
+    const s = Math.max(0.1, p.userData.life);
     p.scale.set(s, s, s);
   }
 }
 
 /* ==========================================================
-   HIT OBSTACLE
+   HIT OBSTACLE (FIX #1: pakai distance, bukan score undefined)
    ========================================================== */
 function hitObstacle() {
   if (invincibleTimer > 0) return;
   if (hoverboardActive) {
-    // Hoverboard saves you once
     hoverboardActive = false;
-    player.userData.board.visible = false;
     invincibleTimer = 1.5;
     shakeTime = 0.3;
     sfx('hit');
@@ -1457,15 +1410,16 @@ function hitObstacle() {
   gameRunning = false;
   if (gameLoopId) cancelAnimationFrame(gameLoopId);
 
+  const finalScore = Math.floor(distance);
   userData.coins += gameCoins;
-  const isNew = score > userData.highScore;
-  if (isNew) userData.highScore = score;
+  const isNew = finalScore > userData.highScore;
+  if (isNew) userData.highScore = finalScore;
   userData.totalGames = (userData.totalGames || 0) + 1;
   saveUserData();
   clearResumeState();
   stopMusic();
 
-  document.getElementById('overDistance').textContent = Math.floor(distance);
+  document.getElementById('overDistance').textContent = finalScore;
   document.getElementById('overCoins').textContent = gameCoins;
   document.getElementById('newRecord').classList.toggle('hidden', !isNew);
   document.getElementById('gameScreen').classList.remove('active');
@@ -1503,21 +1457,16 @@ function playerAction(a) {
     if (wingsActive) return;
     if (!isJumping) {
       isJumping = true;
-      playerVY = bootsActive ? 22 : JUMP_V;
+      playerVY = bootsActive ? 26 : JUMP_V;
       isSliding = false; player.scale.y = 1;
       sfx('jump');
     }
   } else if (a === 'slide') {
     if (wingsActive) return;
-    // Instant down - cancels jump
     isJumping = false;
     playerVY = 0;
-    const groundY = getGroundY();
-    playerY = groundY;
-    if (!isSliding) {
-      isSliding = true; slideTimer = 0.8;
-      sfx('slide');
-    }
+    playerY = getGroundY();
+    if (!isSliding) { isSliding = true; slideTimer = 0.8; sfx('slide'); }
   }
 }
 
@@ -1547,7 +1496,7 @@ document.addEventListener('touchend', e => {
 }, { passive: true });
 
 /* ==========================================================
-   PAUSE / RESUME
+   PAUSE
    ========================================================== */
 function pauseGame() {
   if (!gameRunning || gamePaused) return;
@@ -1607,15 +1556,6 @@ function onResize() {
 }
 
 /* ==========================================================
-   PARTICLES IN LOOP - add to updateGame via requestAnimationFrame
-   ========================================================== */
-const origUpdateGame = updateGame;
-updateGame = function(dt) {
-  origUpdateGame(dt);
-  updateParticles(dt);
-};
-
-/* ==========================================================
    SHOP
    ========================================================== */
 function openShop() {
@@ -1663,16 +1603,12 @@ function selectChar(char) {
 }
 
 /* ==========================================================
-   AUTO-SAVE
+   AUTO-SAVE & AUTH ENTER
    ========================================================== */
 document.addEventListener('visibilitychange', () => {
   if (document.hidden && gameRunning && !gamePaused) pauseGame();
   if (document.hidden) saveUserData();
 });
-
-/* ==========================================================
-   AUTH ENTER KEY
-   ========================================================== */
 document.getElementById('authPass').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
 document.getElementById('authUser').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('authPass').focus(); });
 </script>
