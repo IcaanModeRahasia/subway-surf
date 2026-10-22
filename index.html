@@ -1,1 +1,1091 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Subway Runner 3D</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: #000;
+    font-family: 'Segoe UI', Roboto, sans-serif; user-select: none; }
+  .screen { position: fixed; inset: 0; display: none; flex-direction: column;
+    align-items: center; justify-content: center; z-index: 10; }
+  .screen.active { display: flex; }
+  #gameScreen { display: none; }
+  #gameScreen.active { display: block; }
 
+  /* ---------- AUTH ---------- */
+  #authScreen { background: linear-gradient(160deg, #1a1a2e, #16213e, #0f3460); }
+  .auth-box { background: rgba(255,255,255,.07); backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,.15); border-radius: 24px; padding: 40px 32px;
+    width: 90%; max-width: 380px; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,.5); }
+  .auth-box h1 { color: #fff; font-size: 26px; margin-bottom: 6px;
+    background: linear-gradient(90deg,#00d2ff,#3a7bd5,#00d2ff); -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent; background-size: 200%; animation: shine 3s infinite; }
+  @keyframes shine { 0%,100%{background-position:0%} 50%{background-position:100%} }
+  .subtitle { color: #8899aa; font-size: 13px; margin-bottom: 24px; }
+  .auth-box input { width: 100%; padding: 14px 18px; margin-bottom: 12px;
+    background: rgba(0,0,0,.3); border: 1px solid rgba(255,255,255,.15); border-radius: 12px;
+    color: #fff; font-size: 15px; outline: none; transition: .2s; }
+  .auth-box input:focus { border-color: #00d2ff; box-shadow: 0 0 0 3px rgba(0,210,255,.15); }
+  .auth-btns { display: flex; gap: 10px; margin-top: 8px; }
+  .btn { flex: 1; padding: 14px 20px; border: none; border-radius: 12px; font-size: 15px;
+    font-weight: 600; cursor: pointer; transition: .15s; background: rgba(255,255,255,.1);
+    color: #fff; border: 1px solid rgba(255,255,255,.15); }
+  .btn:hover { background: rgba(255,255,255,.18); transform: translateY(-2px); }
+  .btn:active { transform: scale(.97); }
+  .btn.primary { background: linear-gradient(135deg,#00d2ff,#3a7bd5); border: none;
+    box-shadow: 0 8px 20px rgba(0,150,255,.35); }
+  .btn.primary:hover { box-shadow: 0 12px 28px rgba(0,150,255,.5); }
+  .msg { margin-top: 16px; font-size: 13px; min-height: 18px; }
+  .msg.err { color: #ff6b6b; }
+  .msg.ok { color: #2ecc71; }
+
+  /* ---------- MENU ---------- */
+  #menuScreen { background: linear-gradient(180deg, #0f2027, #203a43, #2c5364); }
+  .menu-top { position: absolute; top: 20px; left: 20px; right: 20px;
+    display: flex; justify-content: space-between; align-items: center; }
+  .user-info { display: flex; align-items: center; gap: 10px; }
+  .avatar { width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg,#00d2ff,#3a7bd5);
+    display: flex; align-items: center; justify-content: center; font-size: 20px; }
+  .username { color: #fff; font-weight: 600; font-size: 14px; }
+  .coins-display { color: #ffd700; font-size: 13px; font-weight: 600; }
+  .hs-display { color: #8899aa; font-size: 13px; background: rgba(0,0,0,.3);
+    padding: 8px 14px; border-radius: 20px; }
+  .menu-center { text-align: center; display: flex; flex-direction: column; gap: 12px;
+    width: 90%; max-width: 340px; }
+  .title3d { color: #fff; font-size: 32px; font-weight: 900; margin-bottom: 20px;
+    text-shadow: 0 4px 0 #0a5, 0 8px 20px rgba(0,255,180,.5); letter-spacing: 2px;
+    background: linear-gradient(180deg,#7fffdc,#00d2ff); -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent; }
+  .play-btn { font-size: 22px; padding: 20px; }
+  .resume-btn { background: linear-gradient(135deg,#f39c12,#e67e22); border: none;
+    box-shadow: 0 8px 20px rgba(243,156,18,.4); }
+  .hidden { display: none !important; }
+
+  /* ---------- GAME ---------- */
+  #gameScreen { position: fixed; inset: 0; z-index: 5; }
+  #gameScreen canvas { display: block; width: 100%; height: 100%; }
+  .hud { position: absolute; top: 16px; left: 16px; right: 16px;
+    display: flex; justify-content: space-between; align-items: flex-start;
+    pointer-events: none; }
+  .hud-left { display: flex; flex-direction: column; gap: 6px; }
+  .hud-score, .hud-coins { color: #fff; font-size: 18px; font-weight: 700;
+    background: rgba(0,0,0,.4); padding: 8px 14px; border-radius: 12px;
+    backdrop-filter: blur(6px); }
+  .pause-btn { pointer-events: auto; width: 48px; height: 48px; border-radius: 12px;
+    background: rgba(0,0,0,.5); border: 1px solid rgba(255,255,255,.2); color: #fff;
+    font-size: 22px; cursor: pointer; backdrop-filter: blur(6px); }
+  .pause-btn:active { transform: scale(.95); }
+  .boots-indicator { position: absolute; top: 80px; left: 50%; transform: translateX(-50%);
+    background: linear-gradient(135deg,#ff9500,#ff6b00); color: #fff; padding: 8px 18px;
+    border-radius: 20px; font-weight: 700; font-size: 14px; box-shadow: 0 4px 20px rgba(255,140,0,.5);
+    animation: pulse 1s infinite; }
+  @keyframes pulse { 0%,100%{transform:translateX(-50%) scale(1)} 50%{transform:translateX(-50%) scale(1.05)} }
+  .controls-mobile { position: absolute; bottom: 20px; left: 0; right: 0;
+    display: none; justify-content: center; gap: 12px; padding: 0 20px; }
+  .ctrl-btn { flex: 1; max-width: 70px; aspect-ratio: 1; border-radius: 16px;
+    background: rgba(0,0,0,.5); border: 1px solid rgba(255,255,255,.2);
+    color: #fff; font-size: 22px; backdrop-filter: blur(6px); cursor: pointer; }
+  .ctrl-btn:active { background: rgba(0,210,255,.4); transform: scale(.95); }
+  @media (hover: none) and (pointer: coarse) { .controls-mobile { display: flex; } }
+
+  /* ---------- PAUSE / OVER ---------- */
+  #pauseScreen, #overScreen { background: rgba(0,0,0,.75); backdrop-filter: blur(8px); z-index: 20; }
+  .pause-box, .over-box { background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.15);
+    border-radius: 24px; padding: 36px 28px; width: 90%; max-width: 340px; text-align: center; }
+  .pause-box h2, .over-box h2 { color: #fff; font-size: 28px; margin-bottom: 20px; }
+  .pause-stats, .over-stats { color: #aab; margin-bottom: 24px; display: flex;
+    flex-direction: column; gap: 10px; font-size: 15px; }
+  .pause-stats b, .over-stats b { color: #fff; font-size: 18px; }
+  .pause-box .btn, .over-box .btn { width: 100%; margin-bottom: 10px; }
+  #newRecord { color: #ffd700; font-size: 18px; font-weight: 900; margin-top: 10px;
+    animation: pulse 1s infinite; }
+
+  /* ---------- SHOP ---------- */
+  #shopScreen { background: linear-gradient(180deg,#1a1a2e,#0f3460); padding: 20px; }
+  .shop-header { width: 100%; max-width: 500px; display: flex; justify-content: space-between;
+    align-items: center; margin-bottom: 20px; }
+  .shop-header h2 { color: #fff; font-size: 22px; }
+  .skin-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px,1fr));
+    gap: 12px; width: 100%; max-width: 500px; margin-bottom: 20px;
+    overflow-y: auto; max-height: 60vh; padding: 4px; }
+  .skin-card { background: rgba(255,255,255,.08); border: 2px solid rgba(255,255,255,.1);
+    border-radius: 16px; padding: 12px 8px; text-align: center; cursor: pointer; transition: .15s; }
+  .skin-card:hover { background: rgba(255,255,255,.15); transform: translateY(-2px); }
+  .skin-card.selected { border-color: #00d2ff; box-shadow: 0 0 20px rgba(0,210,255,.4); }
+  .skin-card.locked { opacity: .6; }
+  .skin-preview { width: 50px; height: 50px; border-radius: 50%; margin: 0 auto 8px;
+    box-shadow: inset -6px -6px 12px rgba(0,0,0,.3); }
+  .skin-name { color: #fff; font-size: 12px; font-weight: 600; }
+  .skin-price { color: #ffd700; font-size: 11px; margin-top: 4px; }
+  .skin-price.owned { color: #2ecc71; }
+  #shopScreen > .btn { width: 100%; max-width: 500px; }
+</style>
+</head>
+<body>
+
+<!-- ================= AUTH ================= -->
+<div id="authScreen" class="screen active">
+  <div class="auth-box">
+    <h1>SUBWAY RUNNER 3D</h1>
+    <p class="subtitle">Masuk atau daftar untuk mulai</p>
+    <input id="authUser" placeholder="Username" autocomplete="off" autocapitalize="none">
+    <input id="authPass" type="password" placeholder="Password" autocomplete="off">
+    <div class="auth-btns">
+      <button class="btn primary" onclick="doLogin()">Login</button>
+      <button class="btn" onclick="doSignup()">Daftar</button>
+    </div>
+    <div id="authMsg" class="msg"></div>
+  </div>
+</div>
+
+<!-- ================= MENU ================= -->
+<div id="menuScreen" class="screen">
+  <div class="menu-top">
+    <div class="user-info">
+      <div class="avatar">👤</div>
+      <div>
+        <div id="menuUser" class="username">Player</div>
+        <div class="coins-display">🪙 <span id="menuCoins">0</span></div>
+      </div>
+    </div>
+    <div class="hs-display">🏆 <span id="menuHighScore">0</span>m</div>
+  </div>
+  <div class="menu-center">
+    <h2 class="title3d">SUBWAY RUNNER 3D</h2>
+    <button id="resumeBtn" class="btn resume-btn hidden" onclick="startGame(true)">⏵ LANJUTKAN</button>
+    <button class="btn primary play-btn" onclick="startGame(false)">▶ MULAI</button>
+    <button class="btn" onclick="openShop()">👕 SKIN</button>
+    <button class="btn" onclick="toggleMusic()">🎵 Musik: <span id="musicLabel">ON</span></button>
+    <button class="btn" onclick="logout()">🚪 Keluar</button>
+  </div>
+</div>
+
+<!-- ================= GAME ================= -->
+<div id="gameScreen">
+  <div class="hud">
+    <div class="hud-left">
+      <div class="hud-score">📏 <span id="hudDistance">0</span>m</div>
+      <div class="hud-coins">🪙 <span id="hudCoins">0</span></div>
+    </div>
+    <button class="pause-btn" onclick="pauseGame()">⏸</button>
+  </div>
+  <div class="boots-indicator hidden" id="bootsIndicator">👢 BOOTS <span id="bootsTimer">0</span>s</div>
+  <div class="controls-mobile">
+    <button class="ctrl-btn" onclick="playerAction('left')">◀</button>
+    <button class="ctrl-btn" onclick="playerAction('jump')">▲</button>
+    <button class="ctrl-btn" onclick="playerAction('slide')">▼</button>
+    <button class="ctrl-btn" onclick="playerAction('right')">▶</button>
+  </div>
+</div>
+
+<!-- ================= PAUSE ================= -->
+<div id="pauseScreen" class="screen">
+  <div class="pause-box">
+    <h2>⏸ PAUSED</h2>
+    <div class="pause-stats">
+      <div>Jarak: <b><span id="pauseDistance">0</span>m</b></div>
+      <div>Koin: <b><span id="pauseCoins">0</span></b></div>
+    </div>
+    <button class="btn primary" onclick="resumeGame()">▶ RESUME</button>
+    <button class="btn" onclick="quitToMenu()">🏠 Menu</button>
+  </div>
+</div>
+
+<!-- ================= GAME OVER ================= -->
+<div id="overScreen" class="screen">
+  <div class="over-box">
+    <h2>💀 GAME OVER</h2>
+    <div class="over-stats">
+      <div>Jarak: <b><span id="overDistance">0</span>m</b></div>
+      <div>Koin: <b><span id="overCoins">0</span></b></div>
+      <div id="newRecord" class="hidden">🎉 REKOR BARU! 🎉</div>
+    </div>
+    <button class="btn primary" onclick="startGame(false)">🔄 MAIN LAGI</button>
+    <button class="btn" onclick="quitToMenu()">🏠 Menu</button>
+  </div>
+</div>
+
+<!-- ================= SHOP ================= -->
+<div id="shopScreen" class="screen">
+  <div class="shop-header">
+    <h2>👕 PILIH SKIN</h2>
+    <div class="coins-display">🪙 <span id="shopCoins">0</span></div>
+  </div>
+  <div id="skinGrid" class="skin-grid"></div>
+  <button class="btn" onclick="closeShop()">◀ Kembali</button>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+/* ============================================================
+   KONFIGURASI
+   ============================================================ */
+const USE_CUSTOM_SONG = false;         // ← GANTI ke true untuk pakai lagu.mp3
+const CUSTOM_SONG_FILE = 'lagu.mp3';   // ← Nama file lagu kamu
+const LANES = [-2.2, 0, 2.2];
+const PLAYER_Z = 0;
+
+/* ============================================================
+   AUTH SYSTEM
+   ============================================================ */
+let currentUser = null;
+let userData = null;
+
+const SKINS = [
+  { id: 'blue',   name: 'Biru',   color: 0x3498db, price: 0 },
+  { id: 'red',    name: 'Merah',  color: 0xe74c3c, price: 0 },
+  { id: 'green',  name: 'Hijau',  color: 0x2ecc71, price: 0 },
+  { id: 'purple', name: 'Ungu',   color: 0x9b59b6, price: 200 },
+  { id: 'pink',   name: 'Pink',   color: 0xff69b4, price: 300 },
+  { id: 'gold',   name: 'Emas',   color: 0xf1c40f, price: 500 },
+  { id: 'cyan',   name: 'Cyan',   color: 0x00d2ff, price: 750 },
+  { id: 'rainbow',name: 'Rainbow',color: 0xff00ff, price: 1500 },
+];
+
+function simpleHash(str) {
+  let h = 0;
+  for (let i = 0; i < str.length; i++) h = ((h << 5) - h + str.charCodeAt(i)) | 0;
+  return 'h' + Math.abs(h).toString(36);
+}
+function getUsers() { return JSON.parse(localStorage.getItem('sr3d_users') || '{}'); }
+function saveUsers(u) { localStorage.setItem('sr3d_users', JSON.stringify(u)); }
+
+function showAuthMsg(msg, type) {
+  const el = document.getElementById('authMsg');
+  el.textContent = msg; el.className = 'msg ' + type;
+}
+
+function doSignup() {
+  const u = document.getElementById('authUser').value.trim();
+  const p = document.getElementById('authPass').value;
+  if (u.length < 3) return showAuthMsg('Username minimal 3 karakter', 'err');
+  if (p.length < 4) return showAuthMsg('Password minimal 4 karakter', 'err');
+  const users = getUsers();
+  if (users[u]) return showAuthMsg('Username sudah dipakai!', 'err');
+  users[u] = {
+    pass: simpleHash(p),
+    coins: 0, highScore: 0, skin: 'blue',
+    unlockedSkins: ['blue', 'red', 'green'],
+    totalGames: 0
+  };
+  saveUsers(users);
+  showAuthMsg('✓ Akun dibuat! Silakan login.', 'ok');
+  document.getElementById('authPass').value = '';
+}
+
+function doLogin() {
+  const u = document.getElementById('authUser').value.trim();
+  const p = document.getElementById('authPass').value;
+  const users = getUsers();
+  if (!users[u]) return showAuthMsg('Username tidak ditemukan', 'err');
+  if (users[u].pass !== simpleHash(p)) return showAuthMsg('Password salah', 'err');
+  currentUser = u;
+  userData = users[u];
+  document.getElementById('authScreen').classList.remove('active');
+  document.getElementById('menuScreen').classList.add('active');
+  refreshMenu();
+  initAudio();
+}
+
+function logout() {
+  if (gameRunning) pauseGame();
+  saveUserData();
+  currentUser = null; userData = null;
+  document.getElementById('menuScreen').classList.remove('active');
+  document.getElementById('authScreen').classList.add('active');
+  document.getElementById('authPass').value = '';
+  showAuthMsg('', '');
+}
+
+function saveUserData() {
+  if (!currentUser) return;
+  const users = getUsers();
+  users[currentUser] = userData;
+  saveUsers(users);
+}
+
+function refreshMenu() {
+  document.getElementById('menuUser').textContent = currentUser;
+  document.getElementById('menuCoins').textContent = userData.coins;
+  document.getElementById('menuHighScore').textContent = userData.highScore;
+  const resume = loadResumeState();
+  document.getElementById('resumeBtn').classList.toggle('hidden', !resume);
+}
+
+/* ============================================================
+   AUDIO
+   ============================================================ */
+let audioCtx = null, musicPlaying = false, musicTimer = null, musicMuted = false;
+let customAudio = null;
+
+function initAudio() {
+  if (audioCtx) return;
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+}
+
+function playTone(freq, time, dur, vol, type = 'sine') {
+  if (!audioCtx) return;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.frequency.value = freq;
+  osc.type = type;
+  gain.gain.setValueAtTime(0, time);
+  gain.gain.linearRampToValueAtTime(vol, time + 0.01);
+  gain.gain.exponentialRampToValueAtTime(0.001, time + dur);
+  osc.connect(gain); gain.connect(audioCtx.destination);
+  osc.start(time); osc.stop(time + dur + 0.05);
+}
+
+const NOTE = { C3:130.81, A2:110, F3:174.61, G3:196,
+  C5:523.25, D5:587.33, E5:659.25, F5:698.46, G5:783.99, A5:880, B5:987.77, C6:1046.5 };
+
+function scheduleLoop() {
+  if (!musicPlaying || musicMuted) return;
+  const now = audioCtx.currentTime;
+  const beat = 60 / 112;
+  const mel = [
+    ['C5',0,.5],['E5',.5,.5],['G5',1,.5],['E5',1.5,.5],
+    ['A5',2,.5],['G5',2.5,.5],['E5',3,1],
+    ['D5',4,.5],['F5',4.5,.5],['A5',5,.5],['F5',5.5,.5],
+    ['G5',6,1],['E5',7,.5],['D5',7.5,.5]
+  ];
+  const bass = [
+    ['C3',0,1],['C3',1,1],['F3',2,1],['G3',3,1],
+    ['C3',4,1],['A2',5,1],['F3',6,1],['G3',7,1]
+  ];
+  mel.forEach(([n, b, d]) => playTone(NOTE[n], now + b*beat, d*beat*.85, .06, 'square'));
+  bass.forEach(([n, b, d]) => playTone(NOTE[n], now + b*beat, d*beat*.85, .09, 'triangle'));
+  musicTimer = setTimeout(scheduleLoop, 8 * beat * 1000);
+}
+
+function startMusic() {
+  if (!audioCtx) initAudio();
+  if (musicPlaying) return;
+  musicPlaying = true;
+  if (USE_CUSTOM_SONG) {
+    customAudio = new Audio(CUSTOM_SONG_FILE);
+    customAudio.loop = true;
+    customAudio.volume = 0.35;
+    customAudio.play().catch(()=>{});
+  } else if (!musicMuted) {
+    scheduleLoop();
+  }
+}
+function stopMusic() {
+  musicPlaying = false;
+  if (musicTimer) clearTimeout(musicTimer);
+  if (customAudio) { customAudio.pause(); customAudio = null; }
+}
+function toggleMusic() {
+  musicMuted = !musicMuted;
+  document.getElementById('musicLabel').textContent = musicMuted ? 'OFF' : 'ON';
+  if (musicMuted) stopMusic(); else startMusic();
+}
+
+function sfx(type) {
+  if (!audioCtx || musicMuted) return;
+  const n = audioCtx.currentTime;
+  if (type === 'coin') { playTone(880,n,.08,.12,'sine'); playTone(1320,n+.04,.1,.1,'sine'); }
+  else if (type === 'jump') { playTone(350,n,.15,.1,'square'); playTone(700,n+.05,.1,.08,'square'); }
+  else if (type === 'hit') { playTone(150,n,.4,.25,'sawtooth'); playTone(80,n,.5,.2,'sawtooth'); }
+  else if (type === 'boots') { playTone(523,n,.1,.12,'sine'); playTone(659,n+.08,.1,.12,'sine'); playTone(784,n+.16,.15,.12,'sine'); }
+}
+
+/* ============================================================
+   THREE.JS GAME
+   ============================================================ */
+let scene, camera, renderer, player, clock;
+let gameRunning = false, gamePaused = false;
+
+let obstacles = [], coins = [], powerups = [];
+let currentLane = 1, targetX = 0;
+let playerY = 0, playerVY = 0, isJumping = false, isSliding = false, slideTimer = 0;
+let distance = 0, gameSpeed = 20, gameCoins = 0, score = 0;
+let bootsActive = false, bootsTimer = 0;
+let nextSpawnDistance = 40;
+let roadTexture;
+let shakeTime = 0;
+let legL, legR, armL, armR;
+let gameStarted = false;
+
+function initThree() {
+  if (renderer) return;
+  const gs = document.getElementById('gameScreen');
+
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x87ceeb);
+  scene.fog = new THREE.Fog(0x87ceeb, 60, 140);
+
+  camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 300);
+  camera.position.set(0, 5, 8);
+  camera.lookAt(0, 1.5, -10);
+
+  renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.outputEncoding = THREE.sRGBEncoding;
+  gs.appendChild(renderer.domElement);
+
+  // Lights
+  const hemi = new THREE.HemisphereLight(0xffffff, 0x445566, 0.9);
+  scene.add(hemi);
+  const sun = new THREE.DirectionalLight(0xfff2cc, 1.1);
+  sun.position.set(15, 30, 10);
+  sun.castShadow = true;
+  sun.shadow.mapSize.set(1024, 1024);
+  sun.shadow.camera.left = -30; sun.shadow.camera.right = 30;
+  sun.shadow.camera.top = 30; sun.shadow.camera.bottom = -30;
+  sun.shadow.camera.far = 80;
+  scene.add(sun);
+
+  // Ground
+  roadTexture = makeRoadTexture();
+  roadTexture.repeat.set(1, 25);
+  const groundMat = new THREE.MeshStandardMaterial({ map: roadTexture, roughness: .9 });
+  const ground = new THREE.Mesh(new THREE.PlaneGeometry(30, 400), groundMat);
+  ground.rotation.x = -Math.PI / 2;
+  ground.position.set(0, 0, -150);
+  ground.receiveShadow = true;
+  scene.add(ground);
+
+  // Side walls / buildings (decor)
+  for (let side of [-1, 1]) {
+    for (let i = 0; i < 12; i++) {
+      const h = 4 + Math.random() * 8;
+      const bldg = new THREE.Mesh(
+        new THREE.BoxGeometry(3, h, 4),
+        new THREE.MeshStandardMaterial({ color: new THREE.Color().setHSL(.55 + Math.random()*.1, .3, .35 + Math.random()*.2), roughness: .8 })
+      );
+      bldg.position.set(side * (6 + Math.random() * 3), h/2, -i * 15 - 10);
+      bldg.castShadow = true; bldg.receiveShadow = true;
+      scene.add(bldg);
+    }
+  }
+
+  // Player
+  player = createPlayer(SKINS.find(s => s.id === userData.skin).color);
+  scene.add(player);
+
+  clock = new THREE.Clock();
+
+  window.addEventListener('resize', onResize);
+}
+
+function makeRoadTexture() {
+  const c = document.createElement('canvas');
+  c.width = 512; c.height = 512;
+  const ctx = c.getContext('2d');
+  // asphalt
+  ctx.fillStyle = '#3a3d42'; ctx.fillRect(0, 0, 512, 512);
+  for (let i = 0; i < 800; i++) {
+    ctx.fillStyle = `rgba(255,255,255,${Math.random()*0.04})`;
+    ctx.fillRect(Math.random()*512, Math.random()*512, 2, 2);
+  }
+  // lane lines
+  ctx.strokeStyle = '#f0c040'; ctx.lineWidth = 6;
+  ctx.setLineDash([40, 40]);
+  [170, 342].forEach(x => {
+    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 512); ctx.stroke();
+  });
+  // edges
+  ctx.setLineDash([]);
+  ctx.strokeStyle = '#e0e0e0'; ctx.lineWidth = 10;
+  ctx.beginPath(); ctx.moveTo(10,0); ctx.lineTo(10,512); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(502,0); ctx.lineTo(502,512); ctx.stroke();
+  const tex = new THREE.CanvasTexture(c);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.anisotropy = 8;
+  return tex;
+}
+
+function createPlayer(color) {
+  const g = new THREE.Group();
+  const bodyMat = new THREE.MeshStandardMaterial({ color, roughness: .5, metalness: .1 });
+  const skinMat = new THREE.MeshStandardMaterial({ color: 0xffd8b0, roughness: .7 });
+  const pantsMat = new THREE.MeshStandardMaterial({ color: 0x2c3e50, roughness: .7 });
+  const shoeMat = new THREE.MeshStandardMaterial({ color: 0x111, roughness: .5 });
+
+  const body = new THREE.Mesh(new THREE.BoxGeometry(.55, .7, .32), bodyMat);
+  body.position.y = 1.05; body.castShadow = true; g.add(body);
+
+  const head = new THREE.Mesh(new THREE.SphereGeometry(.23, 16, 16), skinMat);
+  head.position.y = 1.65; head.castShadow = true; g.add(head);
+
+  // hair
+  const hair = new THREE.Mesh(new THREE.SphereGeometry(.24, 16, 16, 0, Math.PI*2, 0, Math.PI/2), 
+    new THREE.MeshStandardMaterial({ color: 0x2a1810, roughness: .8 }));
+  hair.position.y = 1.7; g.add(hair);
+
+  armL = new THREE.Mesh(new THREE.BoxGeometry(.16, .6, .16), bodyMat);
+  armL.position.set(-.36, 1.05, 0); armL.castShadow = true; g.add(armL);
+  armR = armL.clone(); armR.position.x = .36; g.add(armR);
+
+  legL = new THREE.Mesh(new THREE.BoxGeometry(.2, .6, .2), pantsMat);
+  legL.position.set(-.14, .35, 0); legL.castShadow = true; g.add(legL);
+  legR = legL.clone(); legR.position.x = .14; g.add(legR);
+
+  const shoeL = new THREE.Mesh(new THREE.BoxGeometry(.22, .12, .32), shoeMat);
+  shoeL.position.set(-.14, .06, .04); g.add(shoeL);
+  const shoeR = shoeL.clone(); shoeR.position.x = .14; g.add(shoeR);
+
+  return g;
+}
+
+function setPlayerSkin(skinId) {
+  if (!player) return;
+  const skin = SKINS.find(s => s.id === skinId) || SKINS[0];
+  player.children[0].material.color.setHex(skin.color);
+  player.children[3].material.color.setHex(skin.color);
+  player.children[4].material.color.setHex(skin.color);
+}
+
+/* ---------- Obstacle factories ---------- */
+function createTrain(color = 0xe74c3c) {
+  const g = new THREE.Group();
+  const body = new THREE.Mesh(
+    new THREE.BoxGeometry(1.9, 2.9, 12),
+    new THREE.MeshStandardMaterial({ color, roughness: .4, metalness: .3 })
+  );
+  body.position.y = 1.45; body.castShadow = true; body.receiveShadow = true;
+  g.add(body);
+  // roof
+  const roof = new THREE.Mesh(new THREE.BoxGeometry(2.0, .15, 12.1),
+    new THREE.MeshStandardMaterial({ color: 0x222, roughness: .6 }));
+  roof.position.y = 2.95; g.add(roof);
+  // windows
+  const winMat = new THREE.MeshStandardMaterial({ color: 0x4a90d9, emissive: 0x2a5a8a, emissiveIntensity: .5, metalness: .8, roughness: .2 });
+  for (let i = -2; i <= 2; i++) {
+    for (let s of [-1, 1]) {
+      const w = new THREE.Mesh(new THREE.BoxGeometry(.05, .8, 1.1), winMat);
+      w.position.set(s * .96, 1.8, i * 2.2);
+      g.add(w);
+    }
+  }
+  // wheels
+  for (let i = -1; i <= 1; i++) {
+    for (let s of [-1, 1]) {
+      const wheel = new THREE.Mesh(new THREE.CylinderGeometry(.3, .3, .15, 12),
+        new THREE.MeshStandardMaterial({ color: 0x111 }));
+      wheel.rotation.z = Math.PI / 2;
+      wheel.position.set(s * 1.0, .3, i * 4);
+      g.add(wheel);
+    }
+  }
+  return g;
+}
+
+function createBarrier() {
+  const g = new THREE.Group();
+  const b = new THREE.Mesh(new THREE.BoxGeometry(1.9, 1.1, .35),
+    new THREE.MeshStandardMaterial({ color: 0xff9500, roughness: .5 }));
+  b.position.y = .55; b.castShadow = true; g.add(b);
+  const stripe = new THREE.Mesh(new THREE.BoxGeometry(1.92, .25, .37),
+    new THREE.MeshStandardMaterial({ color: 0x111 }));
+  stripe.position.y = .55; g.add(stripe);
+  return g;
+}
+
+function createHighBar() {
+  const g = new THREE.Group();
+  const bar = new THREE.Mesh(new THREE.BoxGeometry(1.9, .5, .3),
+    new THREE.MeshStandardMaterial({ color: 0x3498db, roughness: .5 }));
+  bar.position.y = 2.2; bar.castShadow = true; g.add(bar);
+  const postL = new THREE.Mesh(new THREE.BoxGeometry(.15, 2.2, .15),
+    new THREE.MeshStandardMaterial({ color: 0x666 }));
+  postL.position.set(-.9, 1.1, 0); g.add(postL);
+  const postR = postL.clone(); postR.position.x = .9; g.add(postR);
+  return g;
+}
+
+function createCoinMesh() {
+  const geo = new THREE.CylinderGeometry(.32, .32, .08, 20);
+  geo.rotateX(Math.PI / 2);
+  const mat = new THREE.MeshStandardMaterial({
+    color: 0xffd700, metalness: .9, roughness: .2,
+    emissive: 0x553300, emissiveIntensity: .3
+  });
+  const c = new THREE.Mesh(geo, mat);
+  c.castShadow = true;
+  return c;
+}
+
+function createBootsMesh() {
+  const g = new THREE.Group();
+  const mat = new THREE.MeshStandardMaterial({
+    color: 0xff9500, emissive: 0xff6600, emissiveIntensity: .6, roughness: .4
+  });
+  const leg = new THREE.Mesh(new THREE.BoxGeometry(.28, .5, .28), mat);
+  leg.position.y = .45; g.add(leg);
+  const foot = new THREE.Mesh(new THREE.BoxGeometry(.28, .22, .5), mat);
+  foot.position.set(0, .11, .1); g.add(foot);
+  // glow ring
+  const ring = new THREE.Mesh(
+    new THREE.TorusGeometry(.5, .05, 8, 20),
+    new THREE.MeshBasicMaterial({ color: 0xffcc00 })
+  );
+  ring.rotation.x = Math.PI / 2; ring.position.y = .05; g.add(ring);
+  return g;
+}
+
+/* ---------- Spawning ---------- */
+function spawnPattern() {
+  const patterns = [
+    // single train
+    () => { addTrain(randomLane()); },
+    // two trains (one lane free)
+    () => {
+      const free = Math.floor(Math.random()*3);
+      for (let i = 0; i < 3; i++) if (i !== free) addTrain(i);
+    },
+    // barrier all lanes (must jump)
+    () => {
+      for (let i = 0; i < 3; i++) addBarrier(i);
+    },
+    // high bar all lanes (must slide)
+    () => {
+      for (let i = 0; i < 3; i++) addHighBar(i);
+    },
+    // barrier + train combo
+    () => {
+      const l = randomLane();
+      addTrain(l);
+      const free = (l + 1 + Math.floor(Math.random()*2)) % 3;
+      addBarrier(free);
+    },
+    // coin arc
+    () => { spawnCoinArc(); return; },
+    // boots powerup
+    () => { addBoots(randomLane()); return; },
+  ];
+  const r = Math.random();
+  if (r < 0.02 && !bootsActive) patterns[6]();
+  else if (r < 0.18) patterns[5]();
+  else patterns[Math.floor(Math.random() * 6)]();
+}
+
+function randomLane() { return Math.floor(Math.random() * 3); }
+
+function addTrain(lane) {
+  const m = createTrain(Math.random() < .5 ? 0xe74c3c : 0x2980b9);
+  m.position.set(LANES[lane], 0, -110);
+  scene.add(m);
+  obstacles.push({ mesh: m, type: 'train', length: 12, yBottom: 0, yTop: 3, lane });
+}
+
+function addBarrier(lane) {
+  const m = createBarrier();
+  m.position.set(LANES[lane], 0, -110);
+  scene.add(m);
+  obstacles.push({ mesh: m, type: 'barrier', length: 1, yBottom: 0, yTop: 1.2, lane });
+}
+
+function addHighBar(lane) {
+  const m = createHighBar();
+  m.position.set(LANES[lane], 0, -110);
+  scene.add(m);
+  obstacles.push({ mesh: m, type: 'highbar', length: 1, yBottom: 1.7, yTop: 2.6, lane });
+}
+
+function spawnCoinArc() {
+  const lane = randomLane();
+  for (let i = 0; i < 6; i++) {
+    const m = createCoinMesh();
+    m.position.set(LANES[lane], 1.1 + Math.sin(i * .5) * .4, -110 - i * 2);
+    scene.add(m);
+    coins.push({ mesh: m, spin: 0 });
+  }
+}
+
+function addBoots(lane) {
+  const m = createBootsMesh();
+  m.position.set(LANES[lane], 1.0, -110);
+  scene.add(m);
+  powerups.push({ mesh: m, type: 'boots' });
+}
+
+/* ---------- Game flow ---------- */
+function startGame(isResume) {
+  if (!userData) return;
+  initAudio();
+  document.getElementById('menuScreen').classList.remove('active');
+  document.getElementById('overScreen').classList.remove('active');
+  document.getElementById('pauseScreen').classList.remove('active');
+  document.getElementById('gameScreen').classList.add('active');
+
+  initThree();
+  resetGameState();
+
+  if (isResume) {
+    const s = loadResumeState();
+    if (s) {
+      distance = s.distance;
+      gameSpeed = s.gameSpeed;
+      gameCoins = s.gameCoins;
+    }
+  }
+  setPlayerSkin(userData.skin);
+  player.position.set(0, 0, PLAYER_Z);
+  player.scale.y = 1;
+  currentLane = 1; targetX = 0;
+
+  gameRunning = true; gamePaused = false; gameStarted = true;
+  startMusic();
+  clock.getDelta(); // reset
+  requestAnimationFrame(gameLoop);
+}
+
+function resetGameState() {
+  // clear scene objects
+  obstacles.forEach(o => scene.remove(o.mesh));
+  coins.forEach(c => scene.remove(c.mesh));
+  powerups.forEach(p => scene.remove(p.mesh));
+  obstacles = []; coins = []; powerups = [];
+
+  distance = 0; gameSpeed = 20; gameCoins = 0; score = 0;
+  playerY = 0; playerVY = 0; isJumping = false; isSliding = false; slideTimer = 0;
+  bootsActive = false; bootsTimer = 0;
+  nextSpawnDistance = 40;
+  shakeTime = 0;
+  updateHUD();
+  document.getElementById('bootsIndicator').classList.add('hidden');
+}
+
+let gameLoopId = null;
+function gameLoop() {
+  if (!gameRunning || gamePaused) return;
+  gameLoopId = requestAnimationFrame(gameLoop);
+  const dt = Math.min(clock.getDelta(), 0.05);
+  updateGame(dt);
+  renderer.render(scene, camera);
+}
+
+function updateGame(dt) {
+  // Speed increases
+  gameSpeed = 20 + Math.min(distance / 100, 25);
+  distance += gameSpeed * dt;
+  score = Math.floor(distance);
+
+  // Player movement
+  // Smooth lane
+  player.position.x += (targetX - player.position.x) * Math.min(dt * 12, 1);
+  // Jump
+  if (isJumping) {
+    playerVY -= 34 * dt;
+    playerY += playerVY * dt;
+    if (playerY <= 0) { playerY = 0; playerVY = 0; isJumping = false; }
+  }
+  // Slide
+  if (isSliding) {
+    slideTimer -= dt;
+    player.scale.y = 0.5;
+    if (slideTimer <= 0) { isSliding = false; player.scale.y = 1; }
+  }
+  player.position.y = playerY;
+
+  // Running animation
+  const runT = performance.now() * 0.012;
+  legL.rotation.x = Math.sin(runT) * 0.7;
+  legR.rotation.x = -Math.sin(runT) * 0.7;
+  armL.rotation.x = -Math.sin(runT) * 0.6;
+  armR.rotation.x = Math.sin(runT) * 0.6;
+
+  // Boots timer
+  if (bootsActive) {
+    bootsTimer -= dt;
+    if (bootsTimer <= 0) {
+      bootsActive = false;
+      document.getElementById('bootsIndicator').classList.add('hidden');
+    } else {
+      document.getElementById('bootsTimer').textContent = Math.ceil(bootsTimer);
+    }
+  }
+
+  // Move world
+  const move = gameSpeed * dt;
+  roadTexture.offset.y = (roadTexture.offset.y - move * 0.05) % 1;
+
+  for (let i = obstacles.length - 1; i >= 0; i--) {
+    const o = obstacles[i];
+    o.mesh.position.z += move;
+    if (o.mesh.position.z > 15) {
+      scene.remove(o.mesh); obstacles.splice(i, 1);
+    }
+  }
+  for (let i = coins.length - 1; i >= 0; i--) {
+    const c = coins[i];
+    c.mesh.position.z += move;
+    c.mesh.rotation.y += dt * 4;
+    if (c.mesh.position.z > 15) {
+      scene.remove(c.mesh); coins.splice(i, 1);
+    }
+  }
+  for (let i = powerups.length - 1; i >= 0; i--) {
+    const p = powerups[i];
+    p.mesh.position.z += move;
+    p.mesh.rotation.y += dt * 3;
+    p.mesh.position.y = 1.0 + Math.sin(performance.now() * 0.003) * 0.2;
+    if (p.mesh.position.z > 15) {
+      scene.remove(p.mesh); powerups.splice(i, 1);
+    }
+  }
+
+  // Spawn
+  if (distance > nextSpawnDistance) {
+    spawnPattern();
+    nextSpawnDistance = distance + 25 + Math.random() * 15;
+  }
+
+  // Collisions with coins
+  for (let i = coins.length - 1; i >= 0; i--) {
+    const c = coins[i];
+    if (Math.abs(c.mesh.position.z - PLAYER_Z) < 1.2 &&
+        Math.abs(c.mesh.position.x - player.position.x) < 1.0 &&
+        Math.abs(c.mesh.position.y - (playerY + 0.9)) < 1.4) {
+      gameCoins++;
+      sfx('coin');
+      scene.remove(c.mesh); coins.splice(i, 1);
+      updateHUD();
+    }
+  }
+
+  // Powerups
+  for (let i = powerups.length - 1; i >= 0; i--) {
+    const p = powerups[i];
+    if (Math.abs(p.mesh.position.z - PLAYER_Z) < 1.3 &&
+        Math.abs(p.mesh.position.x - player.position.x) < 1.1) {
+      if (p.type === 'boots') {
+        bootsActive = true; bootsTimer = 6;
+        document.getElementById('bootsIndicator').classList.remove('hidden');
+        sfx('boots');
+      }
+      scene.remove(p.mesh); powerups.splice(i, 1);
+    }
+  }
+
+  // Collision with obstacles
+  if (shakeTime <= 0) {
+    for (const o of obstacles) {
+      const oz = o.mesh.position.z;
+      const halfLen = o.length / 2;
+      if (Math.abs(oz - PLAYER_Z) > halfLen + 0.4) continue;
+      if (Math.abs(player.position.x - o.mesh.position.x) > 1.15) continue;
+      const pTop = playerY + (isSliding ? 0.9 : 1.8);
+      const pBottom = playerY;
+      if (pTop > o.yBottom && pBottom < o.yTop) {
+        hitObstacle();
+        break;
+      }
+    }
+  }
+
+  // Camera shake
+  if (shakeTime > 0) {
+    shakeTime -= dt;
+    camera.position.x = (Math.random() - .5) * 0.4;
+    camera.position.y = 5 + (Math.random() - .5) * 0.3;
+  } else {
+    camera.position.x += (0 - camera.position.x) * Math.min(dt * 8, 1);
+    camera.position.y += (5 - camera.position.y) * Math.min(dt * 8, 1);
+  }
+  camera.lookAt(player.position.x * 0.3, 1.5, -12);
+
+  updateHUD();
+}
+
+function updateHUD() {
+  document.getElementById('hudDistance').textContent = Math.floor(distance);
+  document.getElementById('hudCoins').textContent = gameCoins;
+}
+
+function hitObstacle() {
+  shakeTime = 0.4;
+  sfx('hit');
+  gameRunning = false;
+  if (gameLoopId) cancelAnimationFrame(gameLoopId);
+
+  userData.coins += gameCoins;
+  const isNew = score > userData.highScore;
+  if (isNew) userData.highScore = score;
+  userData.totalGames = (userData.totalGames || 0) + 1;
+  saveUserData();
+  clearResumeState();
+  stopMusic();
+
+  document.getElementById('overDistance').textContent = score;
+  document.getElementById('overCoins').textContent = gameCoins;
+  document.getElementById('newRecord').classList.toggle('hidden', !isNew);
+  document.getElementById('gameScreen').classList.remove('active');
+  document.getElementById('overScreen').classList.add('active');
+}
+
+/* ---------- Pause / Resume ---------- */
+function pauseGame() {
+  if (!gameRunning || gamePaused) return;
+  gamePaused = true;
+  if (gameLoopId) cancelAnimationFrame(gameLoopId);
+  saveResumeState();
+  document.getElementById('pauseDistance').textContent = score;
+  document.getElementById('pauseCoins').textContent = gameCoins;
+  document.getElementById('pauseScreen').classList.add('active');
+  if (customAudio) customAudio.pause();
+  else stopMusic();
+}
+
+function resumeGame() {
+  if (!gamePaused) return;
+  gamePaused = false;
+  gameRunning = true;
+  document.getElementById('pauseScreen').classList.remove('active');
+  clock.getDelta();
+  startMusic();
+  requestAnimationFrame(gameLoop);
+}
+
+function quitToMenu() {
+  saveUserData();
+  gameRunning = false; gamePaused = false;
+  if (gameLoopId) cancelAnimationFrame(gameLoopId);
+  document.getElementById('pauseScreen').classList.remove('active');
+  document.getElementById('overScreen').classList.remove('active');
+  document.getElementById('gameScreen').classList.remove('active');
+  document.getElementById('menuScreen').classList.add('active');
+  stopMusic();
+  refreshMenu();
+}
+
+/* ---------- Resume State ---------- */
+function saveResumeState() {
+  if (!currentUser) return;
+  localStorage.setItem('sr3d_resume_' + currentUser, JSON.stringify({
+    distance, gameSpeed, gameCoins
+  }));
+}
+function loadResumeState() {
+  if (!currentUser) return null;
+  const s = localStorage.getItem('sr3d_resume_' + currentUser);
+  return s ? JSON.parse(s) : null;
+}
+function clearResumeState() {
+  if (!currentUser) return;
+  localStorage.removeItem('sr3d_resume_' + currentUser);
+}
+
+/* ---------- Input ---------- */
+function playerAction(a) {
+  if (!gameRunning || gamePaused) return;
+  if (a === 'left' && currentLane > 0) {
+    currentLane--;
+    targetX = LANES[currentLane];
+  } else if (a === 'right' && currentLane < 2) {
+    currentLane++;
+    targetX = LANES[currentLane];
+  } else if (a === 'jump' && !isJumping) {
+    isJumping = true;
+    playerVY = bootsActive ? 17 : 12;
+    isSliding = false; player.scale.y = 1;
+    sfx('jump');
+  } else if (a === 'slide' && !isSliding && !isJumping) {
+    isSliding = true; slideTimer = 0.6;
+  }
+}
+
+document.addEventListener('keydown', e => {
+  if (!gameRunning || gamePaused) return;
+  if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') playerAction('left');
+  else if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') playerAction('right');
+  else if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W' || e.key === ' ') playerAction('jump');
+  else if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') playerAction('slide');
+  else if (e.key === 'Escape' || e.key === 'p' || e.key === 'P') pauseGame();
+});
+
+let tX = 0, tY = 0;
+document.addEventListener('touchstart', e => {
+  if (e.target.closest('button')) return;
+  tX = e.touches[0].clientX; tY = e.touches[0].clientY;
+}, { passive: true });
+document.addEventListener('touchend', e => {
+  if (e.target.closest('button')) return;
+  const dx = e.changedTouches[0].clientX - tX;
+  const dy = e.changedTouches[0].clientY - tY;
+  if (Math.abs(dx) < 30 && Math.abs(dy) < 30) return;
+  if (Math.abs(dx) > Math.abs(dy)) playerAction(dx > 0 ? 'right' : 'left');
+  else playerAction(dy > 0 ? 'slide' : 'jump');
+}, { passive: true });
+
+/* ---------- Resize ---------- */
+function onResize() {
+  if (!renderer) return;
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+}
+
+/* ---------- Auto-save on tab hide ---------- */
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden && gameRunning && !gamePaused) pauseGame();
+  if (document.hidden) saveUserData();
+});
+
+/* ---------- Shop ---------- */
+function openShop() {
+  document.getElementById('menuScreen').classList.remove('active');
+  document.getElementById('shopScreen').classList.add('active');
+  renderSkinGrid();
+}
+function closeShop() {
+  document.getElementById('shopScreen').classList.remove('active');
+  document.getElementById('menuScreen').classList.add('active');
+  refreshMenu();
+}
+function renderSkinGrid() {
+  document.getElementById('shopCoins').textContent = userData.coins;
+  const grid = document.getElementById('skinGrid');
+  grid.innerHTML = '';
+  SKINS.forEach(skin => {
+    const owned = userData.unlockedSkins.includes(skin.id);
+    const selected = userData.skin === skin.id;
+    const card = document.createElement('div');
+    card.className = 'skin-card' + (selected ? ' selected' : '') + (!owned ? ' locked' : '');
+    const colorHex = '#' + skin.color.toString(16).padStart(6, '0');
+    const preview = skin.id === 'rainbow'
+      ? 'background: conic-gradient(red,orange,yellow,green,cyan,blue,magenta,red)'
+      : `background: ${colorHex}`;
+    card.innerHTML = `
+      <div class="skin-preview" style="${preview}"></div>
+      <div class="skin-name">${skin.name}</div>
+      <div class="skin-price ${owned ? 'owned' : ''}">${owned ? (selected ? '✓ DIPAKAI' : 'DIMILIKI') : '🪙 ' + skin.price}</div>
+    `;
+    card.onclick = () => selectSkin(skin);
+    grid.appendChild(card);
+  });
+}
+function selectSkin(skin) {
+  const owned = userData.unlockedSkins.includes(skin.id);
+  if (!owned) {
+    if (userData.coins < skin.price) {
+      alert('Koin tidak cukup! Butuh 🪙 ' + skin.price);
+      return;
+    }
+    if (!confirm(`Beli skin ${skin.name} seharga 🪙 ${skin.price}?`)) return;
+    userData.coins -= skin.price;
+    userData.unlockedSkins.push(skin.id);
+  }
+  userData.skin = skin.id;
+  saveUserData();
+  renderSkinGrid();
+}
+
+/* ---------- Init on load ---------- */
+document.getElementById('authPass').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doLogin();
+});
+document.getElementById('authUser').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('authPass').focus();
+});
+</script>
+</body>
+  </html>
