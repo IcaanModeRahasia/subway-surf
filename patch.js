@@ -1,9 +1,8 @@
 /* ================================================================
    UPGRADE v7 (menimpa fungsi lama di atas)
    ================================================================ */
-let starPts=null,planetGrp=null,auroraMats=[],cityB=[],camBaseX=0,glide=0,boardSpin=0,susanoState=0,holdSpawn=false;
-const SLIDE_T=.7,CITY_LEN=24*14;
-
+starPts=null; planetGrp=null; auroraMats=[]; cityB=[]; camBaseX=0; glide=0; boardSpin=0; susanoState=0; holdSpawn=false;
+SLIDE_T=.7; CITY_LEN=24*14;
 /* ---------- AUDIO: browser menahan suara sampai ada sentuhan -> resume ---------- */
 ['pointerdown','touchstart','touchend','click','keydown'].forEach(ev=>document.addEventListener(ev,()=>{initAudio();if(audioCtx&&audioCtx.state!=='running')audioCtx.resume()},{passive:true}));
 {const _as=activateSkill;activateSkill=function(){initAudio();if(audioCtx&&audioCtx.state!=='running')audioCtx.resume();_as()}}
