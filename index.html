@@ -2585,841 +2585,140 @@ $('chatInput')?.addEventListener('keydown',e=>{if(e.key==='Enter')sendChat();});
 
 console.log('SUBWAY NINJA ULTIMATE HD loaded');
 </script>
- <script>
+  <script>
 /* ================================================================
-   HD PATCH v3.0 — Voice Engine + HD Models + BGM + Ramp Fix
-   Paste sebelum </body> di file sebelumnya
+   PATCH FINAL — Voice, UI Clean, Intro/Death Anjing, Susanoo Speed
    ================================================================ */
 (function(){
 'use strict';
 
-// ========== 1. BGM PLAYLIST ==========
-const BGM_LIST = [
-  'aku-ga-romantis.mp3','sampai-kau-jadi-milikku.mp3','flatline.mp3',
-  'kebutuhan-hati.mp3','its-only-me.mp3','danke.mp3','lagu-naruto.mp3',
-  'best-part.mp3','se-yang.mp3','24-7.mp3'
-];
-let bgmIdx = 0;
-let bgmAudio = null;
+// --- 1. HAPUS TOMBOL ARAH & RAPIKAN UI ---
+const style = document.createElement('style');
+style.innerHTML = `
+  .controls-mobile { display: none !important; }
+  .skill-row { bottom: 40px !important; }
+  .chakra-wrap { bottom: calc(40px + 66px + 16px) !important; }
+`;
+document.head.appendChild(style);
 
-window.startMusic = function(){
-  if(!audioCtx) initAudio();
-  if(!musicOn) return;
-  if(!bgmAudio){
-    bgmAudio = new Audio();
-    bgmAudio.volume = 0.4;
-    bgmAudio.addEventListener('ended', ()=>{ bgmIdx=(bgmIdx+1)%BGM_LIST.length; playBGM(); });
-    bgmAudio.addEventListener('error', ()=>{ 
-      bgmIdx=(bgmIdx+1)%BGM_LIST.length; 
-      if(bgmIdx!==0) playBGM(); 
-    });
-  }
-  playBGM();
-};
-function playBGM(){
-  if(!bgmAudio || !musicOn) return;
-  bgmAudio.src = BGM_LIST[bgmIdx];
-  bgmAudio.play().catch(()=>{});
-  const lbl = document.getElementById('trackLabel');
-  if(lbl) lbl.textContent = BGM_LIST[bgmIdx].replace('.mp3','');
-}
-window.stopMusic = function(){
-  if(bgmAudio) bgmAudio.pause();
-  if(musicTimer) clearTimeout(musicTimer);
-};
-window.nextTrack = function(){
-  bgmIdx = (bgmIdx+1) % BGM_LIST.length;
-  if(musicOn) playBGM();
+// --- 2. VOICE ENGINE (SUARA JUTSU) ---
+window.speakJutsu = function(charId, skillName) {
+  if(!window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(`Cakra, ${skillName}!`);
+  u.lang = 'id-ID';
+  if(['naruto','rocklee'].includes(charId)) u.pitch = 1.2;
+  else if(['madara','pain','kakashi'].includes(charId)) u.pitch = 0.6;
+  else if(['sakura','hinata','konan','temari'].includes(charId)) u.pitch = 1.4;
+  else u.pitch = 1.0;
+  u.rate = 1.05;
+  window.speechSynthesis.speak(u);
 };
 
-// ========== 2. FORMANT VOICE ENGINE ==========
-const VOWELS = {
-  a:[730,1090,2440], i:[270,2290,3010], u:[300,870,2240],
-  e:[530,1840,2480], o:[570,840,2410]
-};
-const VOICE_PROFILES = {
-  naruto:{pitch:185,vib:6,fs:1.05,echo:0}, sasuke:{pitch:130,vib:6.2,fs:1,echo:0},
-  kakashi:{pitch:115,vib:5.8,fs:0.98,echo:0}, jiraya:{pitch:100,vib:7,fs:0.92,echo:.15},
-  sakura:{pitch:225,vib:6.5,fs:1.15,echo:0}, hinata:{pitch:205,vib:5,fs:1.12,echo:0},
-  minato:{pitch:128,vib:5.5,fs:1,echo:.10}, madara:{pitch:92,vib:4.5,fs:0.88,echo:.28},
-  itachi:{pitch:102,vib:4,fs:0.90,echo:.22}, gaara:{pitch:108,vib:3.5,fs:0.95,echo:0},
-  rocklee:{pitch:180,vib:7.5,fs:1.08,echo:0}, pain:{pitch:85,vib:3,fs:0.85,echo:.32},
-  obito:{pitch:118,vib:5.5,fs:0.98,echo:.12}, neji:{pitch:138,vib:5,fs:1.02,echo:.08},
-  konan:{pitch:195,vib:4.5,fs:1.10,echo:.15}, shikamaru:{pitch:112,vib:5.2,fs:0.95,echo:.05},
-  temari:{pitch:175,vib:6,fs:1.08,echo:.08}, kaguya:{pitch:160,vib:3,fs:1.2,echo:.4}
+window.speakBoss = function(bossId, attackName) {
+  if(!window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(`${attackName}!`);
+  u.lang = 'id-ID';
+  u.pitch = bossId === 'kaguya' ? 1.5 : 0.5;
+  u.rate = 0.9;
+  window.speechSynthesis.speak(u);
 };
 
-function parseSyllables(text){
-  const vowels='aiueo';
-  const clean=text.toLowerCase().replace(/[^a-z\s,]/g,'');
-  const out=[];
-  let i=0;
-  while(i<clean.length){
-    const ch=clean[i];
-    if(ch===' '||ch===','){i++;continue;}
-    let cons='';
-    while(i<clean.length&&!vowels.includes(clean[i])&&clean[i]!==' '&&clean[i]!==','){
-      cons+=clean[i];i++;
+// --- 3. INTRO ANIMASI (PUKUL ANJING) ---
+window.playIntro = function(done) {
+  if (typeof introPlaying !== 'undefined') introPlaying = true;
+  const startTime = performance.now();
+  if (typeof dog !== 'undefined' && dog) {
+    dog.scale.setScalar(1); dog.position.set(0, 0, 3); dog.rotation.set(0, 0, 0);
+    if (!dog.userData.fireAura) {
+      const fire = new THREE.Mesh(new THREE.SphereGeometry(0.8, 16, 16), new THREE.MeshBasicMaterial({color: 0xff4400, transparent: true, opacity: 0.4, side: THREE.BackSide}));
+      fire.position.y = 0.7; dog.add(fire); dog.userData.fireAura = fire;
     }
-    if(i<clean.length&&vowels.includes(clean[i])){
-      out.push({c:cons||null,v:clean[i],d:0.18});i++;
-    } else if(cons) out.push({c:cons,v:'a',d:0.12});
+    dog.userData.fireAura.visible = false;
   }
-  if(out.length){out[out.length-1].d=0.45;out[out.length-1].em=1;}
-  return out;
-}
-
-function playConsonant(type,t,dur){
-  if(!audioCtx) return;
-  const noise=audioCtx.createBufferSource();
-  const buf=audioCtx.createBuffer(1,audioCtx.sampleRate*dur,audioCtx.sampleRate);
-  const data=buf.getChannelData(0);
-  for(let i=0;i<data.length;i++) data[i]=Math.random()*2-1;
-  noise.buffer=buf;
-  const f=audioCtx.createBiquadFilter();
-  const cfg={
-    r:['bandpass',1600,.14],s:['highpass',3000,.08],g:['lowpass',900,.1],
-    k:['lowpass',1200,.12],ch:['highpass',2200,.1],d:['lowpass',800,.12],
-    sh:['highpass',2500,.1],t:['lowpass',2500,.1],b:['lowpass',500,.14],
-    m:['lowpass',400,.06],n:['lowpass',500,.06],h:['highpass',1500,.06],
-    p:['lowpass',800,.12],y:['bandpass',2000,.05],ts:['highpass',3500,.1]
-  };
-  const c=cfg[type]||['bandpass',1500,.1];
-  f.type=c[0];f.frequency.value=c[1];
-  if(c[0]==='bandpass') f.Q.value=3;
-  const g=audioCtx.createGain();
-  g.gain.setValueAtTime(0,t);
-  g.gain.linearRampToValueAtTime(c[2],t+0.005);
-  g.gain.exponentialRampToValueAtTime(0.001,t+dur);
-  noise.connect(f);f.connect(g);g.connect(audioCtx.destination);
-  noise.start(t);noise.stop(t+dur+0.02);
-}
-
-function synthSyllable(s,t,profile){
-  if(!audioCtx) return;
-  const bp=profile.pitch*(s.pm||1);
-  const dur=s.d;
-  const glot=audioCtx.createOscillator();
-  glot.type='sawtooth';
-  glot.frequency.setValueAtTime(bp*1.05,t);
-  glot.frequency.linearRampToValueAtTime(bp*0.92,t+dur);
-  const vib=audioCtx.createOscillator();
-  const vg=audioCtx.createGain();
-  vib.frequency.value=profile.vib;vg.gain.value=4;
-  vib.connect(vg);vg.connect(glot.frequency);
-  vib.start(t);vib.stop(t+dur+0.05);
-  const fm=VOWELS[s.v]||VOWELS.a;
-  fm.forEach((fr,i)=>{
-    const f=audioCtx.createBiquadFilter();
-    f.type='bandpass';f.frequency.value=fr*profile.fs;
-    f.Q.value=[14,18,20][i];
-    const g=audioCtx.createGain();
-    const vol=[0.40,0.25,0.15][i]*(s.em?1.5:1);
-    g.gain.setValueAtTime(0,t);
-    g.gain.linearRampToValueAtTime(vol,t+0.04);
-    g.gain.setValueAtTime(vol,t+dur-0.10);
-    g.gain.exponentialRampToValueAtTime(0.001,t+dur);
-    glot.connect(f);f.connect(g);g.connect(audioCtx.destination);
-  });
-  glot.start(t);glot.stop(t+dur+0.05);
-  if(s.c) playConsonant(s.c,t,0.06);
-}
-
-window.speakJutsu = function(charId,skillName){
-  if(!audioCtx||!musicOn) return;
-  const p=VOICE_PROFILES[charId]||VOICE_PROFILES.naruto;
-  const syls=parseSyllables(`Cakra, ${skillName}!`);
-  let t=audioCtx.currentTime+0.05;
-  syls.forEach(s=>{synthSyllable(s,t,p);t+=s.d;});
-};
-window.speakBoss = function(bossId,attackName){
-  if(!audioCtx||!musicOn) return;
-  const p=VOICE_PROFILES[bossId]||VOICE_PROFILES.pain;
-  const syls=parseSyllables(`${attackName}!`);
-  let t=audioCtx.currentTime+0.05;
-  syls.forEach(s=>{synthSyllable(s,t,p);t+=s.d;});
-};
-
-// ========== 3. JUTSU SFX ==========
-window.sfxJutsuFull = function(skill){
-  if(!audioCtx||!musicOn) return;
-  const n=audioCtx.currentTime+0.6;
-  const type=skill.type;
-  if(type==='attack'||type==='destroyAll'||type==='ult'){
-    const boom=audioCtx.createOscillator();
-    const bg=audioCtx.createGain();
-    boom.type='sine';
-    boom.frequency.setValueAtTime(150,n);
-    boom.frequency.exponentialRampToValueAtTime(30,n+0.8);
-    bg.gain.setValueAtTime(0,n);
-    bg.gain.linearRampToValueAtTime(0.4,n+0.03);
-    bg.gain.exponentialRampToValueAtTime(0.001,n+0.9);
-    boom.connect(bg);bg.connect(audioCtx.destination);
-    boom.start(n);boom.stop(n+0.9);
-    const nz=audioCtx.createBufferSource();
-    const buf=audioCtx.createBuffer(1,audioCtx.sampleRate*0.6,audioCtx.sampleRate);
-    const d=buf.getChannelData(0);
-    for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1;
-    nz.buffer=buf;
-    const nf=audioCtx.createBiquadFilter();
-    nf.type='bandpass';
-    nf.frequency.setValueAtTime(2000,n);
-    nf.frequency.exponentialRampToValueAtTime(400,n+0.5);
-    const ng=audioCtx.createGain();
-    ng.gain.setValueAtTime(0.25,n);
-    ng.gain.exponentialRampToValueAtTime(0.001,n+0.6);
-    nz.connect(nf);nf.connect(ng);ng.connect(audioCtx.destination);
-    nz.start(n);nz.stop(n+0.6);
-  } else if(type==='shield'||type==='phase'){
-    [523,659,784].forEach((f,i)=>{
-      const o=audioCtx.createOscillator();
-      const g=audioCtx.createGain();
-      o.type='sine';o.frequency.value=f;
-      g.gain.setValueAtTime(0,n+i*0.06);
-      g.gain.linearRampToValueAtTime(0.15,n+i*0.06+0.04);
-      g.gain.exponentialRampToValueAtTime(0.001,n+i*0.06+0.3);
-      o.connect(g);g.connect(audioCtx.destination);
-      o.start(n+i*0.06);o.stop(n+i*0.06+0.35);
-    });
-  } else if(type==='speed'){
-    const o=audioCtx.createOscillator();
-    const g=audioCtx.createGain();
-    o.type='sawtooth';
-    o.frequency.setValueAtTime(200,n);
-    o.frequency.exponentialRampToValueAtTime(1200,n+0.5);
-    g.gain.setValueAtTime(0,n);
-    g.gain.linearRampToValueAtTime(0.2,n+0.05);
-    g.gain.exponentialRampToValueAtTime(0.001,n+0.6);
-    o.connect(g);g.connect(audioCtx.destination);
-    o.start(n);o.stop(n+0.6);
-  } else if(type==='magnet'||type==='slow'){
-    for(let i=0;i<4;i++){
-      const o=audioCtx.createOscillator();
-      const g=audioCtx.createGain();
-      o.type='triangle';o.frequency.value=440+i*110;
-      g.gain.setValueAtTime(0,n+i*0.1);
-      g.gain.linearRampToValueAtTime(0.12,n+i*0.1+0.03);
-      g.gain.exponentialRampToValueAtTime(0.001,n+i*0.1+0.2);
-      o.connect(g);g.connect(audioCtx.destination);
-      o.start(n+i*0.1);o.stop(n+i*0.1+0.25);
+  let barked = false, punched = false;
+  const check = () => {
+    const el = (performance.now() - startTime) / 1000;
+    if (el > 0.2 && !barked) {
+      barked = true;
+      if (typeof sfx === 'function') sfx('bark');
+      if (dog && dog.userData.fireAura) dog.userData.fireAura.visible = true;
     }
-  }
-};
-
-// ========== 4. HD CHARACTER MODEL ==========
-window.buildCharacter = function(char){
-  const g=new THREE.Group(), bg=new THREE.Group();
-  g.add(bg); g.rotation.y=Math.PI;
-  const M=(c,o)=>new THREE.MeshStandardMaterial(Object.assign({color:c,roughness:0.55,metalness:0.1},o||{}));
-  const cloth=M(char.outfit);
-  const skin=M(char.skin,{roughness:0.72});
-  const hairM=M(char.hair,{roughness:0.55,metalness:0.25});
-  const dark=M(0x111118);
-  const pantsM=M(char.id==='naruto'?0xff6a00:char.id==='rocklee'?0x00aa00:0x20263c);
-  const shoeM=M(0x14141c,{roughness:0.4,metalness:0.3});
-  const metalM=M(0xcccccc,{metalness:0.95,roughness:0.15});
-
-  // BODY
-  const torso=new THREE.Mesh(new THREE.CylinderGeometry(0.28,0.22,0.75,16),cloth);
-  torso.position.y=1.1; torso.castShadow=true; bg.add(torso);
-  const collar=new THREE.Mesh(new THREE.TorusGeometry(0.18,0.05,8,20),cloth);
-  collar.position.y=1.48; collar.rotation.x=Math.PI/2; bg.add(collar);
-  const belt=new THREE.Mesh(new THREE.CylinderGeometry(0.29,0.29,0.07,16),dark);
-  belt.position.y=0.78; bg.add(belt);
-  const zip=new THREE.Mesh(new THREE.BoxGeometry(0.04,0.55,0.02),M(0x222222));
-  zip.position.set(0,1.13,0.27); bg.add(zip);
-
-  // HEAD
-  const neck=new THREE.Mesh(new THREE.CylinderGeometry(0.1,0.12,0.14,12),skin);
-  neck.position.y=1.52; bg.add(neck);
-  const head=new THREE.Mesh(new THREE.SphereGeometry(0.27,24,24),skin);
-  head.position.y=1.73; head.scale.set(1,1.05,1); head.castShadow=true; bg.add(head);
-  const jaw=new THREE.Mesh(new THREE.SphereGeometry(0.22,16,16),skin);
-  jaw.position.y=1.62; jaw.scale.set(0.9,0.6,0.95); bg.add(jaw);
-
-  // EYES
-  const isUchiha=['sasuke','itachi','madara','obito'].includes(char.id);
-  [-1,1].forEach(s=>{
-    const ew=new THREE.Mesh(new THREE.SphereGeometry(0.08,16,16),M(0xffffff,{roughness:0.25}));
-    ew.position.set(s*0.1,1.72,0.225); ew.scale.set(1,1.25,0.5); bg.add(ew);
-    const ir=new THREE.Mesh(new THREE.SphereGeometry(0.055,16,16),
-      new THREE.MeshStandardMaterial({color:char.eye,emissive:char.eye,emissiveIntensity:0.6}));
-    ir.position.set(s*0.1,1.715,0.245); ir.scale.set(1,1.3,0.55); bg.add(ir);
-    const pu=new THREE.Mesh(new THREE.SphereGeometry(0.028,10,10),dark);
-    pu.position.set(s*0.1,1.715,0.262); pu.scale.set(1,1.4,0.5); bg.add(pu);
-    const hi=new THREE.Mesh(new THREE.SphereGeometry(0.014,8,8),M(0xffffff,{emissive:0xffffff,emissiveIntensity:0.8}));
-    hi.position.set(s*0.1+0.018,1.73,0.268); bg.add(hi);
-    if(isUchiha){
-      for(let k=0;k<3;k++){
-        const a=k*2.094+0.5;
-        const to=new THREE.Mesh(new THREE.SphereGeometry(0.012,6,6),dark);
-        to.position.set(s*0.1+Math.cos(a)*0.035,1.715+Math.sin(a)*0.045,0.265);
-        bg.add(to);
+    if (el > 0.8 && !punched) {
+      punched = true;
+      if (typeof player !== 'undefined' && player && player.userData.anim) {
+        const a = player.userData.anim;
+        a.armR.rotation.x = -2.5;
+        setTimeout(() => { a.armR.rotation.x = 0; }, 300);
       }
+      if (typeof sfx === 'function') sfx('hit');
+      if (dog) dog.rotation.x = -0.4;
+      setTimeout(() => { if(dog) dog.rotation.x = 0; }, 300);
     }
-    const br=new THREE.Mesh(new THREE.BoxGeometry(0.1,0.02,0.02),hairM);
-    br.position.set(s*0.1,1.79,0.245); br.rotation.z=-s*0.25; bg.add(br);
-    if(char.id==='naruto'){
-      for(let i=0;i<3;i++){
-        const w=new THREE.Mesh(new THREE.BoxGeometry(0.07,0.008,0.008),M(0x553322));
-        w.position.set(s*0.2,1.65+i*0.025,0.21); w.rotation.z=s*(i-1)*0.3; bg.add(w);
-      }
+    if (dog) {
+      dog.scale.setScalar(1 + Math.min(el, 1.5) * 0.3);
+      dog.rotation.z = Math.sin(el * 15) * 0.08;
+      if (dog.userData.fireAura) dog.userData.fireAura.material.opacity = 0.3 + Math.sin(el * 20) * 0.2;
     }
-  });
-  const nose=new THREE.Mesh(new THREE.SphereGeometry(0.04,8,8),skin);
-  nose.position.set(0,1.66,0.265); nose.scale.set(0.8,1.2,1.2); bg.add(nose);
-  const mouth=new THREE.Mesh(new THREE.BoxGeometry(0.09,0.015,0.01),M(0x884433));
-  mouth.position.set(0,1.59,0.26); bg.add(mouth);
-
-  // HAIR
-  const cap=new THREE.Mesh(new THREE.SphereGeometry(0.29,22,22,0,Math.PI*2,0,Math.PI*0.5),hairM);
-  cap.position.y=1.75; bg.add(cap);
-  const back=new THREE.Mesh(new THREE.BoxGeometry(0.42,0.5,0.2),hairM);
-  back.position.set(0,1.6,-0.18); bg.add(back);
-
-  if(['naruto','minato','pain','shikamaru'].includes(char.id)){
-    for(let i=0;i<16;i++){
-      const a=i/16*Math.PI*2;
-      const sp=new THREE.Mesh(new THREE.ConeGeometry(0.08,0.35+Math.random()*0.15,6),hairM);
-      sp.position.set(Math.cos(a)*0.17,1.92,Math.sin(a)*0.17);
-      sp.rotation.z=-Math.cos(a)*0.8; sp.rotation.x=Math.sin(a)*0.8; bg.add(sp);
-    }
-    for(let i=-2;i<=2;i++){
-      const sp=new THREE.Mesh(new THREE.ConeGeometry(0.07,0.28,6),hairM);
-      sp.position.set(i*0.09,1.88,0.22);
-      sp.rotation.x=2.3; sp.rotation.z=-i*0.15; bg.add(sp);
-    }
-  } else if(char.id==='kakashi'){
-    for(let i=0;i<12;i++){
-      const a=i/12*Math.PI*2;
-      const sp=new THREE.Mesh(new THREE.ConeGeometry(0.07,0.32,6),hairM);
-      sp.position.set(Math.cos(a)*0.16,1.92,Math.sin(a)*0.16);
-      sp.rotation.z=-Math.cos(a)*0.9; sp.rotation.x=Math.sin(a)*0.6+0.2; bg.add(sp);
-    }
-  } else if(['sasuke','itachi','madara','neji','hinata','konan','temari','jiraya'].includes(char.id)){
-    const bl=new THREE.Mesh(new THREE.BoxGeometry(0.48,0.95,0.16),hairM);
-    bl.position.set(0,1.32,-0.2); bg.add(bl);
-    [-1,1].forEach(s=>{
-      const sd=new THREE.Mesh(new THREE.BoxGeometry(0.12,0.55,0.14),hairM);
-      sd.position.set(s*0.26,1.5,0.05); bg.add(sd);
-      const fr=new THREE.Mesh(new THREE.BoxGeometry(0.09,0.34,0.08),hairM);
-      fr.position.set(s*0.09,1.83,0.24); bg.add(fr);
-    });
-    const bg2=new THREE.Mesh(new THREE.BoxGeometry(0.44,0.1,0.1),hairM);
-    bg2.position.set(0,1.92,0.2); bg2.name='bangs'; bg.add(bg2);
-  }
-
-  // ACCESSORIES
-  if(['naruto','sasuke','kakashi','rocklee','shikamaru','minato'].includes(char.id)){
-    const band=new THREE.Mesh(new THREE.TorusGeometry(0.285,0.03,8,28),M(0x1f3d8f));
-    band.position.y=1.8; band.rotation.x=Math.PI/2; bg.add(band);
-    const plate=new THREE.Mesh(new THREE.BoxGeometry(0.2,0.1,0.03),metalM);
-    plate.position.set(0,1.8,0.285); bg.add(plate);
-    const sym=new THREE.Mesh(new THREE.TorusGeometry(0.035,0.008,6,12),metalM);
-    sym.position.set(0,1.8,0.305); bg.add(sym);
-    const t1=new THREE.Mesh(new THREE.BoxGeometry(0.06,0.02,0.4),M(0x1f3d8f));
-    t1.position.set(-0.06,1.8,-0.28); t1.rotation.x=0.15; bg.add(t1);
-    const t2=new THREE.Mesh(new THREE.BoxGeometry(0.06,0.02,0.35),M(0x1f3d8f));
-    t2.position.set(0.06,1.8,-0.25); t2.rotation.x=0.15; bg.add(t2);
-  }
-  if(char.id==='kakashi'||char.id==='obito'){
-    if(char.id==='obito'){
-      const sm=new THREE.Mesh(new THREE.SphereGeometry(0.29,16,16,0,Math.PI*2,0,Math.PI/2),M(0xff8800));
-      sm.position.y=1.72; sm.scale.setScalar(1.05); bg.add(sm);
-      const eh=new THREE.Mesh(new THREE.CircleGeometry(0.08,16),M(0x000000));
-      eh.position.set(0.1,1.73,0.29); bg.add(eh);
-    } else {
-      const mask=new THREE.Mesh(new THREE.BoxGeometry(0.42,0.16,0.32),M(0x23262e));
-      mask.position.set(0,1.6,0.1); bg.add(mask);
-    }
-  }
-  if(char.id==='pain'){
-    [[0,1.68,0.27],[-0.08,1.75,0.26],[0.08,1.75,0.26],[-0.1,1.63,0.25],[0.1,1.63,0.25]].forEach(([x,y,z])=>{
-      const r=new THREE.Mesh(new THREE.CylinderGeometry(0.008,0.008,0.05,6),metalM);
-      r.position.set(x,y,z); bg.add(r);
-    });
-  }
-
-  // ARMS
-  const mkArm=s=>{
-    const sh=new THREE.Group(); sh.position.set(s*0.34,1.42,0); bg.add(sh);
-    const up=new THREE.Mesh(new THREE.CylinderGeometry(0.08,0.07,0.32,10),cloth);
-    up.position.y=-0.16; up.castShadow=true; sh.add(up);
-    const el=new THREE.Mesh(new THREE.SphereGeometry(0.075,10,10),cloth);
-    el.position.y=-0.32; sh.add(el);
-    const fo=new THREE.Mesh(new THREE.CylinderGeometry(0.07,0.06,0.3,10),skin);
-    fo.position.y=-0.48; sh.add(fo);
-    const hd=new THREE.Mesh(new THREE.BoxGeometry(0.09,0.13,0.06),skin);
-    hd.position.y=-0.68; sh.add(hd);
-    for(let f=0;f<4;f++){
-      const fg=new THREE.Mesh(new THREE.BoxGeometry(0.018,0.06,0.03),skin);
-      fg.position.set(-0.03+f*0.02,-0.77,0.01); sh.add(fg);
-    }
-    return sh;
-  };
-  const armL=mkArm(-1), armR=mkArm(1);
-
-  // LEGS
-  const mkLeg=s=>{
-    const hip=new THREE.Group(); hip.position.set(s*0.13,0.9,0); bg.add(hip);
-    const th=new THREE.Mesh(new THREE.CylinderGeometry(0.11,0.09,0.42,10),pantsM);
-    th.position.y=-0.21; hip.add(th);
-    const kn=new THREE.Mesh(new THREE.SphereGeometry(0.09,10,10),pantsM);
-    kn.position.y=-0.42; hip.add(kn);
-    const shin=new THREE.Mesh(new THREE.CylinderGeometry(0.08,0.07,0.38,10),pantsM);
-    shin.position.y=-0.62; hip.add(shin);
-    const sh=new THREE.Mesh(new THREE.BoxGeometry(0.16,0.14,0.32),shoeM);
-    sh.position.set(0,-0.84,0.06); hip.add(sh);
-    const so=new THREE.Mesh(new THREE.BoxGeometry(0.17,0.03,0.34),M(0x000000));
-    so.position.set(0,-0.92,0.06); hip.add(so);
-    return hip;
-  };
-  const legL=mkLeg(-1), legR=mkLeg(1);
-
-  g.userData.anim={armL,armR,legL,legR,bodyGroup:bg};
-
-  const aura=new THREE.Mesh(new THREE.TorusGeometry(0.8,0.08,8,32),
-    new THREE.MeshBasicMaterial({color:0x00ccff,transparent:true,opacity:0}));
-  aura.rotation.x=Math.PI/2; aura.position.y=0.1;
-  g.userData.aura=aura; g.add(aura);
-  return g;
-};
-
-// ========== 5. HD BOSS MODELS ==========
-window.buildBossMesh = function(boss){
-  const g=new THREE.Group();
-  const M=(c,o)=>new THREE.MeshStandardMaterial(Object.assign({color:c,roughness:0.5,metalness:0.3},o||{}));
-  const redM=M(0x880000), cloakM=M(0x111111,{emissive:0x330000,emissiveIntensity:0.3});
-  const metalM=M(0xcccccc,{metalness:0.9,roughness:0.1});
-
-  if(boss.id==='pain'){
-    const skinM=M(0xdddddd), hairM=M(0xff8800);
-    const rinM=new THREE.MeshBasicMaterial({color:0x9900cc});
-    const cl=new THREE.Mesh(new THREE.CylinderGeometry(0.8,1.1,2.2,16),cloakM);
-    cl.position.y=1.2; g.add(cl);
-    const co=new THREE.Mesh(new THREE.CylinderGeometry(0.35,0.55,0.6,16),cloakM);
-    co.position.y=2.4; g.add(co);
-    for(let i=0;i<3;i++){
-      const c2=new THREE.Mesh(new THREE.SphereGeometry(0.15,10,10),redM);
-      c2.position.set((i-1)*0.5,1.8-i*0.3,0.85); c2.scale.set(1.3,0.6,0.3); g.add(c2);
-    }
-    const hd=new THREE.Mesh(new THREE.SphereGeometry(0.5,20,20),skinM);
-    hd.position.y=3.1; g.add(hd);
-    for(let i=0;i<10;i++){
-      const a=i/10*Math.PI*2;
-      const sp=new THREE.Mesh(new THREE.ConeGeometry(0.15,0.5,6),hairM);
-      sp.position.set(Math.cos(a)*0.35,3.5,Math.sin(a)*0.35);
-      sp.rotation.z=-Math.cos(a)*0.7; sp.rotation.x=Math.sin(a)*0.7; g.add(sp);
-    }
-    [-1,1].forEach(s=>{
-      for(let r=0;r<3;r++){
-        const ring=new THREE.Mesh(new THREE.TorusGeometry(0.08+r*0.03,0.008,6,20),rinM);
-        ring.position.set(s*0.15,3.15,0.48); g.add(ring);
-      }
-      const pu=new THREE.Mesh(new THREE.SphereGeometry(0.03,8,8),M(0x000000));
-      pu.position.set(s*0.15,3.15,0.5); g.add(pu);
-    });
-    [[0,3,0.48],[-0.15,3.05,0.47],[0.15,3.05,0.47],[-0.2,2.95,0.45],[0.2,2.95,0.45],[0,2.88,0.48]].forEach(([x,y,z])=>{
-      const r=new THREE.Mesh(new THREE.CylinderGeometry(0.015,0.015,0.08,6),metalM);
-      r.position.set(x,y,z); r.rotation.x=Math.PI/2; g.add(r);
-    });
-    [-1,1].forEach(s=>{
-      const arm=new THREE.Mesh(new THREE.CylinderGeometry(0.2,0.25,1.5,12),cloakM);
-      arm.position.set(s*1.1,1.2,0); arm.rotation.z=-s*0.3; g.add(arm);
-    });
-  }
-  else if(boss.id==='obito'){
-    const maskM=M(0xff8800,{emissive:0x442200,emissiveIntensity:0.4});
-    const cl=new THREE.Mesh(new THREE.CylinderGeometry(0.8,1.1,2.2,16),cloakM);
-    cl.position.y=1.2; g.add(cl);
-    const co=new THREE.Mesh(new THREE.CylinderGeometry(0.35,0.55,0.6,16),cloakM);
-    co.position.y=2.4; g.add(co);
-    for(let i=0;i<3;i++){
-      const c2=new THREE.Mesh(new THREE.SphereGeometry(0.15,10,10),redM);
-      c2.position.set((i-1)*0.5,1.8-i*0.3,0.85); c2.scale.set(1.3,0.6,0.3); g.add(c2);
-    }
-    const mask=new THREE.Mesh(new THREE.SphereGeometry(0.55,24,24),maskM);
-    mask.position.y=3.1; g.add(mask);
-    for(let i=0;i<3;i++){
-      const sp=new THREE.Mesh(new THREE.TorusGeometry(0.2+i*0.12,0.02,6,24),M(0x000000));
-      sp.position.y=3.1; sp.rotation.x=Math.PI/2; g.add(sp);
-    }
-    const eh=new THREE.Mesh(new THREE.CircleGeometry(0.12,20),M(0x000000));
-    eh.position.set(0.15,3.15,0.52); g.add(eh);
-    const sh=new THREE.Mesh(new THREE.CircleGeometry(0.09,20),new THREE.MeshBasicMaterial({color:0xcc0000}));
-    sh.position.set(0.15,3.15,0.53); g.add(sh);
-    const pu=new THREE.Mesh(new THREE.CircleGeometry(0.04,12),new THREE.MeshBasicMaterial({color:0x000000}));
-    pu.position.set(0.15,3.15,0.535); g.add(pu);
-    [-1,1].forEach(s=>{
-      const arm=new THREE.Mesh(new THREE.CylinderGeometry(0.2,0.25,1.5,12),cloakM);
-      arm.position.set(s*1.1,1.2,0); arm.rotation.z=-s*0.3; g.add(arm);
-    });
-  }
-  else if(boss.id==='madara'||boss.id==='madara2'){
-    const armorM=M(0x8b0000,{metalness:0.7,roughness:0.3});
-    const darkM=M(0x1a1a1a), hairM=M(0x0a0a0a), skinM=M(0xffd8b0);
-    const ar=new THREE.Mesh(new THREE.CylinderGeometry(0.85,1.15,2.2,16),armorM);
-    ar.position.y=1.2; g.add(ar);
-    for(let i=0;i<3;i++){
-      const pl=new THREE.Mesh(new THREE.TorusGeometry(0.9-i*0.05,0.08,6,20,Math.PI),armorM);
-      pl.position.y=0.8+i*0.5; pl.rotation.x=Math.PI/2; g.add(pl);
-    }
-    [-1,1].forEach(s=>{
-      const gu=new THREE.Mesh(new THREE.BoxGeometry(0.5,0.3,0.7),armorM);
-      gu.position.set(s*0.85,2.3,0); g.add(gu);
-    });
-    const hd=new THREE.Mesh(new THREE.SphereGeometry(0.5,20,20),skinM);
-    hd.position.y=3.1; g.add(hd);
-    const bh=new THREE.Mesh(new THREE.BoxGeometry(0.9,2.5,0.3),hairM);
-    bh.position.set(0,1.8,-0.4); g.add(bh);
-    const hc=new THREE.Mesh(new THREE.SphereGeometry(0.55,20,20,0,Math.PI*2,0,Math.PI*0.55),hairM);
-    hc.position.y=3.15; g.add(hc);
-    [-1,1].forEach(s=>{
-      const bang=new THREE.Mesh(new THREE.BoxGeometry(0.25,1.2,0.15),hairM);
-      bang.position.set(s*0.45,2.7,0.1); g.add(bang);
-    });
-    [-1,1].forEach(s=>{
-      const eye=new THREE.Mesh(new THREE.CircleGeometry(0.09,16),new THREE.MeshBasicMaterial({color:0xcc0000}));
-      eye.position.set(s*0.15,3.15,0.48); g.add(eye);
-      const pu=new THREE.Mesh(new THREE.CircleGeometry(0.035,12),new THREE.MeshBasicMaterial({color:0x000000}));
-      pu.position.set(s*0.15,3.15,0.485); g.add(pu);
-      for(let k=0;k<3;k++){
-        const a=k*2.094;
-        const to=new THREE.Mesh(new THREE.CircleGeometry(0.015,8),new THREE.MeshBasicMaterial({color:0x000000}));
-        to.position.set(s*0.15+Math.cos(a)*0.045,3.15+Math.sin(a)*0.045,0.49); g.add(to);
-      }
-    });
-    const gb=new THREE.Mesh(new THREE.BoxGeometry(0.06,0.8,0.9),darkM);
-    gb.position.set(1.5,1.6,0.3); gb.rotation.z=-0.3; g.add(gb);
-    [-1,1].forEach(s=>{
-      const arm=new THREE.Mesh(new THREE.CylinderGeometry(0.22,0.26,1.5,12),armorM);
-      arm.position.set(s*1.1,1.2,0); arm.rotation.z=-s*0.3; g.add(arm);
-    });
-  }
-  else if(boss.id==='kaguya'){
-    const kiM=M(0xffeeff,{emissive:0xdd88ff,emissiveIntensity:0.3});
-    const hairM=M(0xffffff,{emissive:0xaa88ff,emissiveIntensity:0.2});
-    const skinM=M(0xffeeee);
-    const byM=new THREE.MeshBasicMaterial({color:0xeeeeff});
-    const ki=new THREE.Mesh(new THREE.CylinderGeometry(0.75,1.1,2.2,16),kiM);
-    ki.position.y=1.2; g.add(ki);
-    const co=new THREE.Mesh(new THREE.CylinderGeometry(0.4,0.6,0.6,16),kiM);
-    co.position.y=2.4; g.add(co);
-    const hd=new THREE.Mesh(new THREE.SphereGeometry(0.5,20,20),skinM);
-    hd.position.y=3.1; g.add(hd);
-    [-1,1].forEach(s=>{
-      const horn=new THREE.Mesh(new THREE.ConeGeometry(0.12,0.8,8),hairM);
-      horn.position.set(s*0.25,3.65,0); horn.rotation.z=-s*0.15; g.add(horn);
-    });
-    const bh=new THREE.Mesh(new THREE.BoxGeometry(1.1,2.8,0.4),hairM);
-    bh.position.set(0,1.6,-0.5); g.add(bh);
-    [-1,1].forEach(s=>{
-      const sd=new THREE.Mesh(new THREE.BoxGeometry(0.3,2,0.2),hairM);
-      sd.position.set(s*0.55,2.1,-0.1); g.add(sd);
-    });
-    [-1,1].forEach(s=>{
-      const eye=new THREE.Mesh(new THREE.CircleGeometry(0.12,20),byM);
-      eye.position.set(s*0.15,3.15,0.48); g.add(eye);
-      for(let k=0;k<4;k++){
-        const a=k*Math.PI/2;
-        const ve=new THREE.Mesh(new THREE.BoxGeometry(0.004,0.1,0.01),M(0xaa88aa));
-        ve.position.set(s*0.15+Math.cos(a)*0.08,3.15+Math.sin(a)*0.08,0.47);
-        ve.rotation.z=a; g.add(ve);
-      }
-    });
-    [-1,1].forEach(s=>{
-      const arm=new THREE.Mesh(new THREE.CylinderGeometry(0.18,0.22,1.5,12),kiM);
-      arm.position.set(s*1.05,1.2,0); arm.rotation.z=-s*0.3; g.add(arm);
-    });
-    const aura=new THREE.Mesh(new THREE.SphereGeometry(2,24,24),
-      new THREE.MeshBasicMaterial({color:0xffccff,transparent:true,opacity:0.15,side:THREE.BackSide}));
-    aura.position.y=2; g.add(aura);
-  }
-  else {
-    const mat=M(boss.color,{emissive:boss.color,emissiveIntensity:0.6});
-    const body=new THREE.Mesh(new THREE.CylinderGeometry(0.7,0.9,1.6,12),mat);
-    body.position.y=1.5; g.add(body);
-    const hd=new THREE.Mesh(new THREE.SphereGeometry(0.5,16,16),mat);
-    hd.position.y=2.5; g.add(hd);
-  }
-
-  const aura=new THREE.Mesh(new THREE.SphereGeometry(2.2,24,24),
-    new THREE.MeshBasicMaterial({color:boss.color,transparent:true,opacity:0.12,side:THREE.BackSide}));
-  aura.position.y=2; g.add(aura);
-  return g;
-};
-
-// ========== 6. RAMP FIX + JUMP SYNC ==========
-window.getGroundY = function(){
-  let gy=0;
-  for(const o of obstacles){
-    if(o.type==='train'){
-      if(Math.abs(o.mesh.position.x-player.position.x)<1.0){
-        if(Math.abs(o.mesh.position.z-PLAYER_Z)<o.length/2+0.5){
-          if(playerY>=TRAIN_TOP-0.5) gy=Math.max(gy,TRAIN_TOP);
-        }
-      }
-    }
-  }
-  return gy;
-};
-
-window.updateGame = function(dt){
-  if(dying){ updateDying(dt); return; }
-
-  // Chakra
-  chakra=Math.min(100,chakra+dt*8);
-  const cf=document.getElementById('chakraFill');
-  if(cf) cf.style.width=chakra+'%';
-
-  // Cooldowns
-  for(let i=0;i<4;i++){ if(skillCooldowns[i]>0) skillCooldowns[i]=Math.max(0,skillCooldowns[i]-dt); }
-  if(typeof updateSkillButtons==='function') updateSkillButtons();
-
-  // Timers
-  if(invincibleTimer>0) invincibleTimer-=dt;
-  if(phaseTimer>0) phaseTimer-=dt;
-  if(magnetTimer>0) magnetTimer-=dt;
-  if(slowTimer>0) slowTimer-=dt;
-  if(speedBoostTimer>0) speedBoostTimer-=dt;
-
-  // Speed
-  const sf=slowTimer>0?0.5:1;
-  const sm=speedBoostTimer>0?1.5:1;
-  const ts=Math.min(32+distance*0.008,70)*sm;
-  gameSpeed+=(ts-gameSpeed)*dt*2;
-  const move=gameSpeed*dt*sf;
-  distance+=move;
-
-  if(typeof checkBossTrigger==='function') checkBossTrigger();
-
-  if(bossActive){
-    if(typeof updateBossFight==='function') updateBossFight(dt);
-  } else {
-    // Dog catch
-    const dogTZ=Math.max(1.5,5-distance/1500);
-    dog.position.z+=(dogTZ-dog.position.z)*dt*2;
-    dog.position.x+=(player.position.x-dog.position.x)*dt*3;
-    dogAnimTime+=dt*8;
-    if(dog.userData.legs){
-      dog.userData.legs.forEach((l,i)=>{ l.rotation.x=Math.sin(dogAnimTime+i*1.5)*0.6; });
-    }
-    if(dog.position.z<2.5&&invincibleTimer<=0&&phaseTimer<=0){
-      startDying('caught'); return;
-    }
-
-    // Spawn
-    if(distance>nextSpawnDist){
-      if(typeof spawnPattern==='function') spawnPattern();
-      nextSpawnDist=distance+25+Math.random()*15;
-    }
-
-    // Move world (with prevZ tracking for ramp fix)
-    for(let i=obstacles.length-1;i>=0;i--){
-      const o=obstacles[i];
-      o.prevZ=o.mesh.position.z;
-      o.mesh.position.z+=move;
-      if(o.mesh.position.z>15){ scene.remove(o.mesh); obstacles.splice(i,1); }
-    }
-    for(let i=coins.length-1;i>=0;i--){
-      const c=coins[i];
-      c.mesh.position.z+=move;
-      c.mesh.rotation.y+=0.1;
-      if(magnetTimer>0){
-        const dx=player.position.x-c.mesh.position.x;
-        const dy=playerY+1-c.mesh.position.y;
-        const dz=-c.mesh.position.z;
-        const d=Math.hypot(dx,dy,dz);
-        if(d<8&&d>0){
-          c.mesh.position.x+=dx/d*dt*10;
-          c.mesh.position.y+=dy/d*dt*10;
-          c.mesh.position.z+=dz/d*dt*10;
-        }
-      }
-      if(c.mesh.position.z>15){ scene.remove(c.mesh); coins.splice(i,1); }
-    }
-    if(roadTex) roadTex.offset.y=(roadTex.offset.y-move*0.04)%1;
-
-    // Player X
-    player.position.x+=(targetX-player.position.x)*Math.min(dt*15,1);
-
-    // === SWEPT RAMP DETECTION ===
-    let onRamp=false;
-    for(const o of obstacles){
-      if(o.type!=='train'||!o.hasRamp) continue;
-      if(Math.abs(o.mesh.position.x-player.position.x)>1.2) continue;
-      const rampLen=3;
-      const prevZ=o.prevZ!==undefined?o.prevZ:o.mesh.position.z;
-      const currZ=o.mesh.position.z;
-      const bz=currZ+6, fz=currZ+6+rampLen;
-      const pBz=prevZ+6, pFz=prevZ+6+rampLen;
-      let maxT=-1;
-      if(0>=bz&&0<=fz) maxT=Math.max(maxT,(fz-0)/rampLen);
-      if(0>=pBz&&0<=pFz) maxT=Math.max(maxT,(pFz-0)/rampLen);
-      if(pFz<0&&bz>=0) maxT=1;
-      if(pBz<=0&&pFz>=0&&bz>0) maxT=1;
-      if(maxT>=0){
-        const ry=Math.max(0,Math.min(1,maxT))*TRAIN_TOP;
-        if(ry>playerY-0.3){
-          playerY=Math.max(playerY,ry);
-          playerVY=0; isJumping=false; onRamp=true;
-        }
-      }
-    }
-
-    // Jump physics
-    if(!onRamp){
-      const gy=getGroundY();
-      if(isJumping||playerY>gy+0.05){
-        playerVY-=GRAVITY*dt;
-        playerY+=playerVY*dt;
-        if(playerY<=gy){ playerY=gy; playerVY=0; isJumping=false; }
-      } else { playerY=gy; playerVY=0; }
-    }
-    player.position.y=playerY;
-
-    // Slide
-    if(isSliding){ slideTimer-=dt; if(slideTimer<=0) isSliding=false; }
-
-    // Collision
-    if(invincibleTimer<=0&&phaseTimer<=0){
-      if(typeof checkCollision==='function') checkCollision();
-      if(dying) return;
-    }
-
-    // Animate
-    if(typeof animatePlayer==='function') animatePlayer(dt);
-
-    // Pickup
-    for(let i=coins.length-1;i>=0;i--){
-      const c=coins[i];
-      if(Math.abs(c.mesh.position.z-PLAYER_Z)<1.3&&
-         Math.abs(c.mesh.position.x-player.position.x)<1&&
-         Math.abs(c.mesh.position.y-(playerY+1))<1.5){
-        gameCoins++; sfx('coin');
-        if(typeof spawnCoinBurst==='function') spawnCoinBurst(c.mesh.position.x,c.mesh.position.y,c.mesh.position.z);
-        scene.remove(c.mesh); coins.splice(i,1);
-      }
-    }
-  }
-
-  if(typeof updateParticles==='function') updateParticles(dt);
-  if(typeof updateRings==='function') updateRings(dt);
-  camera.position.x+=((targetX*0.4)-camera.position.x)*Math.min(dt*5,1);
-  camera.lookAt(player.position.x*0.3,3.5+playerY*0.3,-12);
-  if(typeof updateHUD==='function') updateHUD();
-  if(typeof updateStatusBar==='function') updateStatusBar();
-};
-
-// ========== 7. HOOK useSkill → jutsu SFX ==========
-const _origUseSkill = window.useSkill;
-if(_origUseSkill){
-  window.useSkill = function(idx){
-    if(!gameRunning||gamePaused||dying) return;
-    const char=CHAR_MAP[userData.currentChar]||CHARACTERS[0];
-    const skId=char.skills[idx];
-    const sk=SKILLS[skId];
-    if(!sk) return;
-    if(skillCooldowns[idx]>0) return;
-    if(chakra<sk.cost) return;
-    _origUseSkill(idx);
-    if(typeof window.sfxJutsuFull==='function') window.sfxJutsuFull(sk);
-  };
-}
-
-// ========== 8. INTRO: PUKUL ANJING + FIRE AURA ==========
-window.playIntro = function(done){
-  introPlaying=true;
-  const startTime=performance.now();
-  const duration=2000;
-  if(dog){
-    dog.scale.setScalar(1);
-    dog.position.set(0,0,3);
-    dog.rotation.set(0,0,0);
-    if(!dog.userData.fireAura){
-      const fire=new THREE.Mesh(new THREE.SphereGeometry(0.8,16,16),
-        new THREE.MeshBasicMaterial({color:0xff4400,transparent:true,opacity:0.4,side:THREE.BackSide}));
-      fire.position.y=0.7; dog.add(fire);
-      dog.userData.fireAura=fire;
-    }
-    dog.userData.fireAura.visible=false;
-  }
-  let barked=false, punched=false;
-  const check=()=>{
-    const el=(performance.now()-startTime)/1000;
-    if(el>0.2&&!barked){
-      barked=true; sfx('bark');
-      if(typeof speak==='function') speak('Woof woof!',{rate:0.85,pitch:0.8});
-      if(dog.userData.fireAura) dog.userData.fireAura.visible=true;
-    }
-    if(el>0.8&&!punched){
-      punched=true;
-      if(player&&player.userData.anim){
-        const a=player.userData.anim;
-        a.armR.rotation.x=-2;
-        setTimeout(()=>{ a.armR.rotation.x=0; },400);
-      }
-      if(dog) dog.rotation.x=-0.3;
-    }
-    if(dog){
-      dog.scale.setScalar(1+Math.min(el,1.5)*0.4);
-      dog.rotation.z=Math.sin(el*15)*0.08;
-      if(dog.userData.fireAura){
-        dog.userData.fireAura.material.opacity=0.3+Math.sin(el*20)*0.15;
-        dog.userData.fireAura.scale.setScalar(1+Math.sin(el*12)*0.1);
-      }
-    }
-    if(el<2) requestAnimationFrame(check);
+    if (el < 2) requestAnimationFrame(check);
     else {
-      introPlaying=false;
-      if(dog){
-        dog.scale.setScalar(1);
-        dog.rotation.set(0,0,0);
-        dog.position.set(0,0,5);
-        if(dog.userData.fireAura) dog.userData.fireAura.visible=false;
+      if (typeof introPlaying !== 'undefined') introPlaying = false;
+      if (dog) {
+        dog.scale.setScalar(1); dog.rotation.set(0, 0, 0); dog.position.set(0, 0, 5);
+        if (dog.userData.fireAura) dog.userData.fireAura.visible = false;
       }
-      done();
+      if (done) done();
     }
   };
   check();
 };
 
-// ========== 9. DEATH: ANJING RAKSASA TELAN ==========
-window.startDying = function(reason){
-  if(dying) return;
-  dying=true; dyingT=0;
-  sfx('hit');
-  gameSpeed=5;
-  const startTime=performance.now();
-  const grow=()=>{
-    const el=(performance.now()-startTime)/1000;
-    if(el<1.5){
-      if(dog){
-        dog.scale.setScalar(Math.min(1+el*2,5));
-        dog.position.z=5-el*2;
-        dog.position.y=el*0.8;
-        if(!dog.userData.fireAura){
-          const fire=new THREE.Mesh(new THREE.SphereGeometry(0.8,16,16),
-            new THREE.MeshBasicMaterial({color:0xff4400,transparent:true,opacity:0.5,side:THREE.BackSide}));
-          fire.position.y=0.7; dog.add(fire);
-          dog.userData.fireAura=fire;
+// --- 4. DEATH ANIMASI (ANJING TELAN KARAKTER) ---
+window.startDying = function(reason) {
+  if (typeof dying !== 'undefined' && dying) return;
+  if (typeof dying !== 'undefined') dying = true;
+  if (typeof dyingT !== 'undefined') dyingT = 0;
+  if (typeof sfx === 'function') sfx('hit');
+  if (typeof gameSpeed !== 'undefined') gameSpeed = 5;
+  const startTime = performance.now();
+  const grow = () => {
+    const el = (performance.now() - startTime) / 1000;
+    if (el < 1.5) {
+      if (dog) {
+        dog.scale.setScalar(Math.min(1 + el * 2.5, 5));
+        dog.position.z = 5 - el * 2; dog.position.y = el * 0.8;
+        if (!dog.userData.fireAura) {
+          const fire = new THREE.Mesh(new THREE.SphereGeometry(0.8, 16, 16), new THREE.MeshBasicMaterial({color: 0xff4400, transparent: true, opacity: 0.5, side: THREE.BackSide}));
+          fire.position.y = 0.7; dog.add(fire); dog.userData.fireAura = fire;
         }
-        dog.userData.fireAura.visible=true;
-        dog.userData.fireAura.material.opacity=0.5+Math.sin(el*15)*0.2;
+        dog.userData.fireAura.visible = true;
       }
       requestAnimationFrame(grow);
     } else {
-      sfx('eat');
-      if(typeof speak==='function') speak('Nyam nyam nyam~',{rate:0.8,pitch:0.5});
-      if(player) player.visible=false;
-      setTimeout(()=>{ if(typeof finishRun==='function') finishRun(); },800);
+      if (typeof sfx === 'function') sfx('bite');
+      if (window.speechSynthesis) {
+        const u = new SpeechSynthesisUtterance("Nyam, nyam, nyam...");
+        u.pitch = 0.3; u.rate = 0.8; u.lang = 'id-ID';
+        window.speechSynthesis.speak(u);
+      }
+      if (typeof player !== 'undefined' && player) player.visible = false;
+      setTimeout(() => { if (typeof finishRun === 'function') finishRun(); }, 800);
     }
   };
-  setTimeout(grow,400);
+  setTimeout(grow, 400);
 };
 
-console.log('✅ HD Patch v3.0 loaded — voice + models + BGM + ramp fix + intro/death HD');
+// --- 5. SUSANOO AUTO-SPEEDUP (MAKSIMAL 2 DETIK DI 20KM) ---
+setInterval(() => {
+  if (typeof distance !== 'undefined' && typeof susanooNextAttack !== 'undefined' && distance > 0) {
+    const distKm = distance / 1000;
+    let maxDelay = Math.max(2, 12 - (distKm * 0.5)); 
+    if (susanooNextAttack > maxDelay) susanooNextAttack = maxDelay;
+  }
+}, 500);
+
 })();
- </script>
+            </script>
 </body>
  </html>
